@@ -11,10 +11,14 @@ class	Server {
 		Server();
 		~Server(); // destroy Config
 
+		const Config*	getConfig() const;
+
 	private:
 		Server(const Server&);
 		Server&	operator=(const Server&);
 
 		Config*	_config;
 };
+
+std::ostream&	operator<<(std::ostream& out, const Server& server);
 #endif

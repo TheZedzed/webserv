@@ -22,7 +22,15 @@ class	Config {
 		bool	setReturn(const String& ret);
 		bool	setMaxBodySize(const String& size);
 
-		const Locations	getLocation() const;
+		const Locations&	getLocation() const;
+		const ErrPage&		getErrPages() const;
+		const Array&		getInclude() const;
+		const Array&		getIndexes() const;
+		const Array&		getNames() const;
+		const String&		getRoot() const;
+		const Redirect&		getRedir() const;
+		const size_t		getMax() const;
+		const bool			getAuto() const;
 
 	private:
 		Config(const Config&);
@@ -34,7 +42,10 @@ class	Config {
 		Array		_index; // default: index index.html;
 		Array		_names; // default: server_name "";
 		String		_root; // default: root html;
+		bool		_auto; // default no
 		Redirect	_ret; // default: none
 		size_t		_max; // default: client_max_body_size 1m;
 };
+
+std::ostream&	operator<<(std::ostream& out, const Config& config);
 #endif

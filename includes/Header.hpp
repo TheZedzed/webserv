@@ -22,10 +22,6 @@
 
 #define ERR_LOG(code, msg) std::cerr << "Error code: " << code << ", " << msg << std::endl;
 
-#define GET (1 << 1)
-#define POST (1 << 2)
-#define DELETE (1 << 3)
-
 #define SUCCESS 0
 #define FAILURE 1
 
@@ -40,4 +36,6 @@ struct	Redirect {
 };
 
 static String	data_recv;
+
+std::ostream&	operator<<(std::ostream& out, const Redirect& ret);
 #endif
