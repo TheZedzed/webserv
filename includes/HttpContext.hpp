@@ -6,7 +6,7 @@
 # include "Event.hpp"
 
 typedef struct	s_Request {
-	std::string							status_line;
+	std::string							request_line;
 	std::map<std::string, std::string>	header_fields;
 	std::string							body;
 }t_Request;
@@ -21,14 +21,14 @@ class	HttpContext {
 	public:
 		HttpContext();
 		~HttpContext();// destroy Event
-		HttpContext(const HttpContext&);
-		HttpContext&	operator=(const HttpContext&);
 		bool	configure(const std::string& file);
-		bool	destroy();
 		bool	loop();
-		bool	handleRequest(epoll_event event, int socket);
+		bool	handleRequest(int socket);
 		bool	handleResponse(int socket);
 	private:
+		HttpContext(const HttpContext&);
+		HttpContext&	operator=(const HttpContext&);
+
 		Event*		_multiplexing;
 		t_Request	_request;
 		t_Response	_response;

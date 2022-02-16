@@ -7,23 +7,23 @@
 
 class	Event {
 	public:
-		~Event();// destroy each Server from _servers
-		Event(const std::vector<Server*>& servers);
-		bool	addEvent(Server* server, int socket, int flag);// add an event based on one socket to the epoll instance
-		bool	newEvent(void);// create epoll instance and add events (sockets with asociated server)
+		~Event();// destroy each event
+		Event(std::map<int, Server*>& events);
+		bool	addEvent(int socket, int flag);// add an event based on one socket to the epoll instance
+		bool	newEvent();// create epoll instance and add events (sockets with asociated server)
 		bool	delEvent(int fd);
-		bool	modEvent(epoll_event old, int fd);
+		bool	modEvent(int fd);
 		int		newConnection(int socket);
-		bool	loop(void);
-		const int						getEpoll() const;
-		const std::vector<Server*>&		getServers() const;
+		bool	loop();
+		const int	getInstance() const;
+		const std::map<int, Server*>	getEvents() const;
 	private:
 		Event();
 		Event&	operator=(const Event&);
 		Event(const Event&);
 
 		int		_epoll_fd;
-		const std::vector<Server*>&	_servers;
+		std::map<int, Server*>&	_events; // Contain pair(socket, server)
 };
 #endif
 

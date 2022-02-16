@@ -9,11 +9,10 @@
 class	Server {
 	public:
 		Server();
+		~Server(); // destroy each location in config
 		Server&	operator=(const Server&);
 		Server(const Server&);
-		virtual ~Server();// destroy each node in _locations
-		const std::map<int, std::string>		getSockets() const;
-		const std::map<std::string, Location*>	getLocation() const;
+		bool	addSocket(void);
 	private:
 		Config*	_config;
 };

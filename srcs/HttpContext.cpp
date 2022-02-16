@@ -4,42 +4,60 @@ static const int	MAX_EVENTS = 256;
 static const int	BUFFER_SIZE = 4096;
 static epoll_event	events[MAX_EVENTS];
 
-HttpContext::HttpContext() {
-	std::cout << "Creating webserver..." << std::endl;
-}
+HttpContext::HttpContext()
+{ std::cout << "Creating webserver..." << std::endl; }
 
 HttpContext::~HttpContext() {
 	std::cout << "Destroy webserver" << std::endl;
-	this->destroy();
+	delete _multiplexing;
 }
 
-HttpContext&	HttpContext::operator=(const HttpContext& rgh) {
+/*
+static bool	createSocket(std::map<int, Server*>* events, Server* server, const std::string& address, const std::string& port) {
+	struct sockaddr_in	listen_address;
+	int		socket_fd;
+	int		res;
 
+	res = 1;
+	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (socket_fd == -1)
+		return FAILURE;
+	setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &res, sizeof(res));
+	memset(&listen_address, 0, sizeof(sockaddr_in));
+	listen_address.sin_family = AF_INET; //ipv4
+	listen_address.sin_port = htons(std::atoi(port.c_str()));
+	listen_address.sin_addr.s_addr = htonl(inet_addr(address.c_str()));
+	res = bind(socket_fd, reinterpret_cast<sockaddr *>(&listen_address), sizeof(sockaddr_in));
+	if (res == -1)
+		return FAILURE;
+	res = listen(socket_fd, 100);//up to 100 connections
+	if (res == -1)
+		return FAILURE;
+	events->insert(std::pair<int, Server*>(socket_fd, server));
+	return SUCCESS;
 }
+*/
 
 bool	HttpContext::configure(const std::string& file) {
-	std::vector<Server*>	servers;
+	std::map<int, Server*>	events;
+	Server*	curr_serv;
+	Config*	curr_conf;
 	bool	error;
 
 	/*
 	** parse config here
-	** push back in servers
-	** construct ultiplexing with servers
-	** while not EOF
+	** Read file while not EOF
 	** LOOP:
 	**	|create server
-	**	|push_back sockets
-	**	|..
-	**	|create location
+	**	|create current config (fill it)
+	**	| LOOP:
+	**		createSocket(&events, curr_serv, "address", "port");
 	*/
-	if (servers.empty() || error)
+	if (events.empty() || error)
 		return FAILURE;
-	this->_multiplexing = new Event(servers);
+	_multiplexing = new Event(events);
 	return SUCCESS;
 }
-
-bool	HttpContext::destroy(void)
-{ delete _multiplexing; }
 
 bool	HttpContext::handleResponse(int socket) {
 	char	*buf;
@@ -51,7 +69,7 @@ bool	HttpContext::handleResponse(int socket) {
 	return SUCCESS;
 }
 
-bool	HttpContext::handleRequest(epoll_event event, int socket) {
+bool	HttpContext::handleRequest(int socket) {
 	std::string	buffer(BUFFER_SIZE, 0);
 	int		rlen;
 
@@ -63,7 +81,7 @@ bool	HttpContext::handleRequest(epoll_event event, int socket) {
 			break ;
 		}
 		else if (rlen == -1) {//finish read with non block fd (EAGAIN or EWOULDBLOCK)
-			if (_multiplexing->modEvent(event, socket))
+			if (_multiplexing->modEvent(socket))
 				return FAILURE;
 			break ;
 		}
@@ -75,7 +93,7 @@ bool	HttpContext::handleRequest(epoll_event event, int socket) {
 }
 
 bool	HttpContext::loop(void) {
-	int		epoll = _multiplexing->getEpoll();
+	int		epoll = _multiplexing->getInstance();
 	int		res;
 	int		nfds;
 	int		peer_fd;
@@ -92,7 +110,7 @@ bool	HttpContext::loop(void) {
 			else if (res)
 				continue ;
 			if (events[i].events & EPOLLIN) {
-				if (handleRequest(events[i], peer_fd))
+				if (handleRequest(peer_fd))
 					return FAILURE;
 			}
 			if (events[i].events & EPOLLOUT) {

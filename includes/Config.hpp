@@ -17,9 +17,10 @@ class	Config {
 		bool	addReturn(const std::string& ret);
 		bool	addMaxBodySize(const std::string& size);
 
+		const std::map<std::string, Location*>	getLocation() const;
+
 		std::map<std::string, Location*>	_locations; // default: none
 		std::map<int, std::string>			_error_page; // default: none
-		std::map<int, std::string>			_sockets; // default: listen *:80 | *:8000; Contain socket (listen_fd, pair(address, port))
 		std::vector<std::string>			_include; //include file
 		std::vector<std::string>			_index; // default: index index.html;
 		std::vector<std::string>			_names; // default: server_name "";
