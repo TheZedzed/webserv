@@ -34,4 +34,12 @@ class	HttpContext {
 		Request		_request;
 		Response	_response;
 };
+
+std::ostream&	operator<<(std::ostream& out, const Request& req) {
+
+}
+
+std::ostream&	operator<<(std::ostream& out, const Request& res) {
+	
+}
 #endif

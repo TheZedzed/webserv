@@ -1,7 +1,12 @@
 #include "Header.hpp"
 
 std::ostream&	operator<<(std::ostream& out, const Redirect& ret) {
-	out << "\ncode:" << ret.code;
-	out << "\nurl: " << ret.url;
+	out << "code:" << ret.first;
+	out << "\nurl: " << ret.second;
+	return out;
+}
+
+std::ostream&	operator<<(std::ostream& out, const Socket& sok) {
+	out << sok.first << ":" << sok.second;
 	return out;
 }

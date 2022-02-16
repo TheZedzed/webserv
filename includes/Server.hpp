@@ -8,7 +8,7 @@
 /* manage socket, new connection on server */
 class	Server {
 	public:
-		Server();
+		Server(Config* config);
 		~Server(); // destroy Config
 
 		const Config*	getConfig() const;

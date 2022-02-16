@@ -1,22 +1,19 @@
 #include "Location.hpp"
 
+Location::Location() : _allowed(), _cgi() {
+	_auto = false;
+	_root = "html";
+	_redir = std::make_pair(-1, "");
+}
+
 Location::~Location()
 { std::cout << "Destroy current location directive.." << std::endl; }
-
-const Array&	Location::getIndexes() const
-{ return _index; }
-
-const ErrPage&	Location::getErrPages() const
-{ return _error_page; }
 
 const String&	Location::getRoot() const
 { return _root; }
 
 const Redirect&	Location::getRedir() const
-{ return _ret; }
-
-const size_t	Location::getMax() const
-{ return _max; }
+{ return _redir; }
 
 const bool		Location::getAuto() const
 { return _auto; }
@@ -24,43 +21,26 @@ const bool		Location::getAuto() const
 const Array&	Location::getAllow() const
 { return _allowed; }
 
-const String&	Location::getCgiPass() const
-{ return _fastcgi_pass; }
-
-const String&	Location::getCgiParam() const
-{ return _fastcgi_param; }
+const String&	Location::getCgi() const
+{ return _cgi; }
 
 std::ostream&	operator<<(std::ostream& out, const Location& loc) {
-	ErrPage::const_iterator	it;
-	Array::const_iterator	it1;
+	Array::const_iterator	it;
 
-	out << "\n[error_page directive]:\n";
-	it = loc.getErrPages().begin();
-	for (; it != loc.getErrPages().end(); ++it) {
-		out << "code: " << it->first;
-		out << "\nuri: " << it->second;
+	out << "[Location block]\n";
+	out << "\n[allowed]: ";
+	it = loc.getAllow().begin();
+	for (; it != loc.getAllow().end(); ++it) {
+		out << *it << " ";
 	}
-	out << "\n[index directive]:\n";
-	it1 = loc.getIndexes().begin();
-	for (; it1 != loc.getIndexes().end(); ++it1) {
-		out << *it1 << " ";
-	}
-	out << "\n[allow directive]:\n";
-	it1 = loc.getAllow().begin();
-	for (; it1 != loc.getAllow().end(); ++it1) {
-		out << *it1 << " ";
-	}
-	out << "\n[client_max_body_size]: ";
-	out << loc.getMax();
-	out << "\n[root directive]: ";
+	out << "\n[root]: ";
 	out << loc.getRoot();
-	out << "\n[autoindex directive]:\n";
+	out << "\n[autoindex]: ";
 	out << loc.getAuto();
-	out << "\n[return directive]:\n";
+	out << "\n[redirection]:\n";
 	out << loc.getRedir();
-	out << "\n[fastcgi_pass directive]:\n";
-	out << loc.getCgiPass();
-	out << "\n[fastcgi_param directive]:\n";
-	out << loc.getCgiParam();
+	out << "\n[cgi]: ";
+	out << loc.getCgi();
+	out << "\n";
 	return out;
 }

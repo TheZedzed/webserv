@@ -29,13 +29,11 @@ typedef typename std::string				String;
 typedef typename std::vector<String>		Array;
 typedef typename std::map<int, String>		ErrPage;
 typedef typename std::map<String, String>	Fields;
-
-struct	Redirect {
-	String		url;
-	uint16_t	code;
-};
+typedef typename std::pair<int, String>		Pair;
+typedef typename std::pair<String, String>	Socket;
 
 static String	data_recv;
 
-std::ostream&	operator<<(std::ostream& out, const Redirect& ret);
+std::ostream&	operator<<(std::ostream& out, const Pair& ret);
+std::ostream&	operator<<(std::ostream& out, const Socket& sok);
 #endif

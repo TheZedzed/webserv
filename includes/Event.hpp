@@ -9,8 +9,8 @@ class	Event {
 	public:
 		typedef typename std::map<int, Server*>	Pool;
 
-		~Event();// destroy each event
 		Event(Pool& events);
+		~Event();// destroy each event
 
 		bool	addEvent(int socket, int flag);// add an event based on one socket to the epoll instance
 		bool	newEvent();// create epoll instance and add events (sockets with asociated server)
@@ -28,7 +28,7 @@ class	Event {
 		Event(const Event&);
 
 		int		_epoll_fd;
-		Pool&	_events; // Contain pair(socket, server)
+		Pool&	_events; // Contain map of pair(socket, server*)
 };
 #endif
 

@@ -1,80 +1,99 @@
 #include "Config.hpp"
 
+Config::Config() : _routes(), _error_page() {
+	_max = 1024;
+	_names.push_back("localhost");
+	_socket = std::make_pair("127.0.0.1", "80");
+}
+
 Config::~Config() {
-	Locations::iterator	it;
+	Route::iterator	it;
 
 	std::cout << "Destroy current server config..." << std::endl;
-	for (it = _locations.begin(); it != _locations.end(); ++it) {
+	for (it = _routes.begin(); it != _routes.end(); ++it) {
 		delete it->second; // calls ~Location()
 	}
 }
 
-const Config::Locations&	Config::getLocation() const
-{ return _locations; }
+const Config::Route&	Config::getRoutes() const
+{ return _routes; }
 
 const ErrPage&	Config::getErrPages() const
 { return _error_page; }
 
-const Array&	Config::getInclude() const
-{ return _include; }
-
-const Array&	Config::getIndexes() const
-{ return _index; }
-
 const Array&	Config::getNames() const
 { return _names; }
-
-const String&	Config::getRoot() const
-{ return _root; }
-
-const Redirect&	Config::getRedir() const
-{ return _ret; }
 
 const size_t	Config::getMax() const
 { return _max; }
 
-const bool		Config::getAuto() const
-{ return _auto; }
+const Socket&	Config::getSocket() const
+{ return _socket; }
+
+bool	Config::setSocket(const Array& line) {
+	Socket	item;
+
+	item = std::make_pair(line[1], line[2]);
+	_socket = item;
+}
+
+bool	Config::setMax(const String& line)
+{ _max = std::atoi(line.c_str()); }
+
+bool	Config::setErrorPage(const Array& line) {
+	std::pair<int, String>	item;
+	String	value;
+	int		key;
+
+	key = std::atoi(line[1].c_str());
+	value = line[2];
+	item = std::make_pair(key, value);
+	_error_page.insert(item);
+}
+
+bool	Config::setRoutes(const String& key, Location** loc) {
+	std::pair<String, Location*>	item;
+
+	item = std::make_pair(key, *loc);
+	_routes.insert(item);
+}
+
+bool	Config::setNames(const Array& line) {
+	Array::const_iterator	it;
+
+	it = line.begin();
+	for (; it != line.end(); ++it) {
+		_names.push_back(*it);
+	}
+}
 
 std::ostream&	operator<<(std::ostream& out, const Config& config) {
-	Config::Locations::const_iterator	it;
-	ErrPage::const_iterator				it2;
-	Array::const_iterator				it3;
+	Config::Route::const_iterator	it;
+	ErrPage::const_iterator			it2;
+	Array::const_iterator			it3;
 
-	out << "[location directive]\n";
-	it = config.getLocation().begin();
-	for (; it != config.getLocation().end(); ++it) {
-		out << "URL:" << it->first;
-		out << "\nContent:\n" << it->second;
+	out << "[Config server info]\n";
+	out << "\n[Socket]: ";
+	out << config.getSocket();
+	out << "\n[routes]:\n";
+	it = config.getRoutes().begin();
+	for (; it != config.getRoutes().end(); ++it) {
+		out << "url: " << it->first;
+		out << "\ndirectives:\n" << it->second;
 	}
-	out << "\n[error_page directive]:\n";
+	out << "\n[error pages]:\n";
 	it2 = config.getErrPages().begin();
 	for (; it2 != config.getErrPages().end(); ++it2) {
-		out << "code: " << it->first;
-		out << "\nuri: " << it->second;
+		out << "code: " << it2->first;
+		out << "\nuri: " << it2->second;
 	}
-	out << "\n[server_name directive]\n";
+	out << "\n[server_names]\n";
 	it3 = config.getNames().begin();
 	for (; it3 != config.getNames().end(); ++it3) {
 		out << *it3 << " ";
 	}
-	out << "\n[index directive]:\n";
-	it3 = config.getIndexes().begin();
-	for (; it3 != config.getIndexes().end(); ++it3) {
-		out << *it3 << " ";
-	}
-	out << "\n[include directive]:\n";
-	it3 = config.getInclude().begin();
-	for (; it3 != config.getInclude().end(); ++it3) {
-		out << *it3 << "\n";
-	}
 	out << "\n[client_max_body_size]: ";
 	out << config.getMax();
-	out << "\n[root directive]: ";
-	out << config.getRoot();
-	out << "\n[return directive]:\n";
-	out << config.getRedir();
-	out << "\n[autoindex directive]:\n";
-	out << config.getAuto();
+	out << "\n";
 	return out;
 }

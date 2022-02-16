@@ -11,7 +11,6 @@ Event::~Event() {
 		delete it->second;// calls ~Server()
 		close(it->first);
 	}
-	_events.clear();
 }
 
 const int	Event::getInstance() const
