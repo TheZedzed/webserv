@@ -5,32 +5,33 @@
 
 # include "Event.hpp"
 
-typedef struct	s_Request {
-	std::string							request_line;
-	std::map<std::string, std::string>	header_fields;
-	std::string							body;
-}t_Request;
+struct	Request {
+	String	request_line;
+	Fields	header_fields;
+	String	body;
+};
 
-typedef struct	s_Response {
-	std::string							status_line;
-	std::map<std::string, std::string>	header_fields;
-	std::string							body;
-}t_Response;
+struct	Response {
+	String	status_line;
+	Fields	header_fields;
+	String	body;
+};
 
 class	HttpContext {
 	public:
 		HttpContext();
-		~HttpContext();// destroy Event
-		bool	configure(const std::string& file);
-		bool	loop();
-		bool	handleRequest(int socket);
-		bool	handleResponse(int socket);
+		~HttpContext(); // destroy Event
+
+		bool	configure(const String& file); // parse config file
+		bool	loop(); // Event loop
+		bool	handleRequest(int socket); // handle HTTP request
+		bool	handleResponse(int socket); // handle HTTP response
 	private:
 		HttpContext(const HttpContext&);
 		HttpContext&	operator=(const HttpContext&);
 
 		Event*		_multiplexing;
-		t_Request	_request;
-		t_Response	_response;
+		Request		_request;
+		Response	_response;
 };
 #endif

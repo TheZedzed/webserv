@@ -13,7 +13,7 @@ HttpContext::~HttpContext() {
 }
 
 /*
-static bool	createSocket(std::map<int, Server*>* events, Server* server, const std::string& address, const std::string& port) {
+static bool	createSocket(std::map<int, Server*>* events, Server* server, const String& address, const String& port) {
 	struct sockaddr_in	listen_address;
 	int		socket_fd;
 	int		res;
@@ -38,7 +38,7 @@ static bool	createSocket(std::map<int, Server*>* events, Server* server, const s
 }
 */
 
-bool	HttpContext::configure(const std::string& file) {
+bool	HttpContext::configure(const String& file) {
 	std::map<int, Server*>	events;
 	Server*	curr_serv;
 	Config*	curr_conf;
@@ -70,7 +70,7 @@ bool	HttpContext::handleResponse(int socket) {
 }
 
 bool	HttpContext::handleRequest(int socket) {
-	std::string	buffer(BUFFER_SIZE, 0);
+	String	buffer(BUFFER_SIZE, 0);
 	int		rlen;
 
 	while (26) {

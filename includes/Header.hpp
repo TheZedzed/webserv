@@ -20,8 +20,6 @@
 # include <vector>
 # include <algorithm>
 
-static std::string	data_recv;
-
 #define ERR_LOG(code, msg) std::cerr << "Error code: " << code << ", " << msg << std::endl;
 
 #define GET (1 << 1)
@@ -31,9 +29,15 @@ static std::string	data_recv;
 #define SUCCESS 0
 #define FAILURE 1
 
-typedef struct	s_redirect {
-	std::string	url;
-	uint16_t	code;
-}t_redirect;
+typedef typename std::string				String;
+typedef typename std::vector<String>		Array;
+typedef typename std::map<int, String>		ErrPage;
+typedef typename std::map<String, String>	Fields;
 
+struct	Redirect {
+	String		url;
+	uint16_t	code;
+};
+
+static String	data_recv;
 #endif

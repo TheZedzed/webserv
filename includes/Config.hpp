@@ -7,25 +7,34 @@
 
 class	Config {
 	public:
-		bool	addSocket(const std::string& address, const std::string& port);
-		bool	addErrorPage(const std::string& codes, const std::string& uri);
-		bool	addLocations(const std::string& uri);
-		bool	addIndex(const std::string& indexes);
-		bool	addInclude(const std::string& directory);
-		bool	addNames(const std::string& names);
-		bool	addRoot(const std::string& root);
-		bool	addReturn(const std::string& ret);
-		bool	addMaxBodySize(const std::string& size);
+		typedef typename std::map<String, Location*>	Locations;
 
-		const std::map<std::string, Location*>	getLocation() const;
+		Config();
+		~Config();
 
-		std::map<std::string, Location*>	_locations; // default: none
-		std::map<int, std::string>			_error_page; // default: none
-		std::vector<std::string>			_include; //include file
-		std::vector<std::string>			_index; // default: index index.html;
-		std::vector<std::string>			_names; // default: server_name "";
-		std::string							_root; // default: root html;
-		t_redirect							_ret; // default: none
-		uint64_t							_max; // default: client_max_body_size 1m;
+		bool	setSocket(const String& address, const String& port);
+		bool	setErrorPage(const String& codes, const String& uri);
+		bool	setLocations(const String& uri);
+		bool	setIndex(const String& indexes);
+		bool	setInclude(const String& directory);
+		bool	setNames(const String& names);
+		bool	setRoot(const String& root);
+		bool	setReturn(const String& ret);
+		bool	setMaxBodySize(const String& size);
+
+		const Locations	getLocation() const;
+
+	private:
+		Config(const Config&);
+		Config&	operator=(const Config&);
+
+		Locations	_locations; // default: none
+		ErrPage		_error_page; // default: none
+		Array		_include; //include file
+		Array		_index; // default: index index.html;
+		Array		_names; // default: server_name "";
+		String		_root; // default: root html;
+		Redirect	_ret; // default: none
+		size_t		_max; // default: client_max_body_size 1m;
 };
 #endif

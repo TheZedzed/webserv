@@ -9,11 +9,12 @@
 class	Server {
 	public:
 		Server();
-		~Server(); // destroy each location in config
-		Server&	operator=(const Server&);
-		Server(const Server&);
-		bool	addSocket(void);
+		~Server(); // destroy Config
+
 	private:
+		Server(const Server&);
+		Server&	operator=(const Server&);
+
 		Config*	_config;
 };
 #endif

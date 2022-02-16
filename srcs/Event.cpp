@@ -1,10 +1,10 @@
 #include "Event.hpp"
 
-Event::Event(std::map<int, Server*>& events) : _events(events)
+Event::Event(Pool& events) : _events(events)
 { std::cout << "Create event.." << std::endl; }
 
 Event::~Event() {
-	std::map<int, Server*>::iterator	it;
+	Pool::iterator	it;
 
 	std::cout << "Destroy Servers.." << std::endl;
 	for (it = _events.begin(); it != _events.end(); ++it) {
@@ -17,15 +17,15 @@ Event::~Event() {
 const int	Event::getInstance() const
 { return _epoll_fd; }
 
-const std::map<int, Server*>	Event::getEvents() const
+const typename Event::Pool	Event::getEvents() const
 { return _events; }
 
 int	Event::newConnection(int socket) {
-	std::map<int, Server*>::const_iterator	listen_fd;
+	Pool::const_iterator	listen_fd;
 	struct sockaddr_in	client_addr;
 	socklen_t	size;
 	int			new_socket;
-	int	res;
+	int			res;
 
 	listen_fd = _events.find(socket);
 	if (listen_fd != _events.end()) {
@@ -43,7 +43,7 @@ int	Event::newConnection(int socket) {
 }
 
 bool	Event::newEvent() {
-	std::map<int, Server*>::const_iterator	it;
+	Pool::const_iterator	it;
 	int	res;
 
 	_epoll_fd = epoll_create(1);

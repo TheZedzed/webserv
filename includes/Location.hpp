@@ -9,24 +9,30 @@
 class	Location {
 	public:
 		Location();//default value from nginx
-		bool	setBodySize(std::string);
-		bool	setRoot(std::string);
-		bool	setIndex(std::string);
-		bool	setErrorPages(std::string);
-		bool	setAutoIndex(std::string);
-		bool	setRedirection(std::string);
-		bool	setMethod(std::string);
-		bool	setCGIpass(std::string);
-		bool	setCGIparam(std::string);
+		~Location();
+
+		bool	setBodySize(String);
+		bool	setRoot(String);
+		bool	setIndex(String);
+		bool	setErrorPages(String);
+		bool	setAutoIndex(String);
+		bool	setRedirection(String);
+		bool	setMethod(String);
+		bool	setCGIpass(String);
+		bool	setCGIparam(String);
+
 	private:
-		uint32_t					_client_max_body_size;//maximum allowed size of the client request body. If the size in a >>, the 413 (Request Entity Too Large) is send
-		std::string					_root; //Sets the root directory for requests
-		std::set<std::string>		_index; //requests ending with the slash character (‘/’)
-		std::map<int, std::string>	_error_page;// error pages
-		bool						_autoindex; // requests ending with the slash character (‘/’) and produces a directory listing when cant find index
-		t_redirect					_return; //http redirection
-		uint8_t						_allowed; //Sets allowed methods
-		std::string					_fastcgi_pass; //Sets the address of a FastCGI server
-		std::string					_fastcgi_param ; //Sets a parameter that should be passed to the FastCGI server
+		Location(const Location&);
+		Location&	operator=(const Location&);
+
+		uint32_t	_max;//maximum allowed size of the client request body. If the size in a >>, the 413 (Request Entity Too Large) is send
+		String		_root; //Sets the root directory for requests
+		Array		_index; //requests ending with the slash character (‘/’)
+		ErrPage		_error_page;// error pages
+		bool		_autoindex; // requests ending with the slash character (‘/’) and produces a directory listing when cant find index
+		Redirect	_ret; //http redirection
+		uint8_t		_allowed; //Sets allowed methods
+		String		_fastcgi_pass; //Sets the address of a FastCGI server
+		String		_fastcgi_param ; //Sets a parameter that should be passed to the FastCGI server
 };
 #endif
