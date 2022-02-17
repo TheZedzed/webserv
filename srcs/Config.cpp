@@ -30,18 +30,18 @@ const size_t	Config::getMax() const
 const Socket&	Config::getSocket() const
 { return _socket; }
 
-bool	Config::setSocket(const Array& line) {
+void	Config::setSocket(const Array& line) {
 	Socket	item;
 
 	item = std::make_pair(line[1], line[2]);
 	_socket = item;
 }
 
-bool	Config::setMax(const String& line)
+void	Config::setMax(const String& line)
 { _max = std::atoi(line.c_str()); }
 
-bool	Config::setErrorPage(const Array& line) {
-	std::pair<int, String>	item;
+void	Config::setErrorPage(const Array& line) {
+	Pair	item;
 	String	value;
 	int		key;
 
@@ -51,17 +51,17 @@ bool	Config::setErrorPage(const Array& line) {
 	_error_page.insert(item);
 }
 
-bool	Config::setRoutes(const String& key, Location** loc) {
+void	Config::setRoutes(const String& key, Location** loc) {
 	std::pair<String, Location*>	item;
 
 	item = std::make_pair(key, *loc);
 	_routes.insert(item);
 }
 
-bool	Config::setNames(const Array& line) {
+void	Config::setNames(const Array& line) {
 	Array::const_iterator	it;
 
-	it = line.begin();
+	it = line.begin() + 1;
 	for (; it != line.end(); ++it) {
 		_names.push_back(*it);
 	}

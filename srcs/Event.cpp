@@ -1,10 +1,10 @@
 #include "Event.hpp"
 
-Event::Event(Pool& events) : _events(events)
+Event::Event(const Pool& events, int fd) : _events(events), _epoll(fd)
 { std::cout << "Create event.." << std::endl; }
 
 Event::~Event() {
-	Pool::iterator	it;
+	Pool::const_iterator	it;
 
 	std::cout << "Destroy Servers.." << std::endl;
 	for (it = _events.begin(); it != _events.end(); ++it) {
@@ -14,12 +14,12 @@ Event::~Event() {
 }
 
 const int	Event::getInstance() const
-{ return _epoll_fd; }
+{ return _epoll; }
 
-const typename Event::Pool	Event::getEvents() const
+const Event::Pool&	Event::getEvents() const
 { return _events; }
 
-int	Event::newConnection(int socket) {
+int	Event::newConnection(int socket) const {
 	Pool::const_iterator	listen_fd;
 	struct sockaddr_in	client_addr;
 	socklen_t	size;
@@ -41,22 +41,7 @@ int	Event::newConnection(int socket) {
 	return 0;
 }
 
-bool	Event::newEvent() {
-	Pool::const_iterator	it;
-	int	res;
-
-	_epoll_fd = epoll_create(1);
-	if (_epoll_fd == -1)
-		return FAILURE;
-	for (it = _events.begin(); it != _events.end(); ++it) {
-		res = addEvent(it->first, EPOLLIN);
-		if (res)
-			return FAILURE;
-	}
-	return SUCCESS;
-}
-
-bool	Event::modEvent(int fd) {
+bool	Event::modEvent(int fd) const {
 	struct sockaddr_in	client_addr;
 	struct epoll_event	ev;
 	socklen_t	size;
@@ -66,13 +51,13 @@ bool	Event::modEvent(int fd) {
 	ev.events |= EPOLLOUT;
 	getsockname(fd, reinterpret_cast<sockaddr*>(&client_addr), &size);
 	printf("client %s:%d request:\n%s\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port, data_recv.c_str());
-	res = epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev);
+	res = epoll_ctl(_epoll, EPOLL_CTL_MOD, fd, &ev);
 	if (res)
 		return FAILURE;
 	return SUCCESS;
 }
 
-bool	Event::delEvent(int fd) {
+bool	Event::delEvent(int fd) const {
 	struct sockaddr_in	client_addr;
 	socklen_t	size;
 	int			res;
@@ -80,21 +65,21 @@ bool	Event::delEvent(int fd) {
 	size = sizeof(client_addr);
 	getsockname(fd, reinterpret_cast<sockaddr*>(&client_addr), (&size));
 	printf("client:%s on port:%d connexion close!\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
-	res = epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+	res = epoll_ctl(_epoll, EPOLL_CTL_DEL, fd, NULL);
 	if (res == -1)
 		return FAILURE;
 	close(fd);
 	return SUCCESS;
 }
 
-bool	Event::addEvent(int socket, int flag) {
+bool	Event::addEvent(int socket, int flag) const {
 	struct epoll_event	ev;
 	int		res;
 
 	ev.data.fd = socket;
 	ev.events = flag;
 	fcntl(socket, F_SETFL, O_NONBLOCK);
-	res = epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, socket, &ev);
+	res = epoll_ctl(_epoll, EPOLL_CTL_ADD, socket, &ev);
 	if (res == -1)
 		return FAILURE;
 	return SUCCESS;

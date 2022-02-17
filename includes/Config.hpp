@@ -12,11 +12,11 @@ class	Config {
 		Config();
 		~Config();
 
-		bool	setErrorPage(const Array& line);
-		bool	setRoutes(const String& key, Location** loc);
-		bool	setSocket(const Array& line);
-		bool	setNames(const Array& line);
-		bool	setMax(const String& line);
+		void	setErrorPage(const Array& line);
+		void	setRoutes(const String& key, Location** loc);
+		void	setSocket(const Array& line);
+		void	setNames(const Array& line);
+		void	setMax(const String& line);
 
 		const ErrPage&	getErrPages() const;
 		const Route&	getRoutes() const;

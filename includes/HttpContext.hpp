@@ -19,20 +19,21 @@ struct	Response {
 
 class	HttpContext {
 	public:
-		HttpContext();
-		~HttpContext(); // destroy Event
+		HttpContext(const Event::Pool& events, int fd);
+		~HttpContext();
 
-		bool	configure(const String& file); // parse config file
 		bool	loop(); // Event loop
 		bool	handleRequest(int socket); // handle HTTP request
 		bool	handleResponse(int socket); // handle HTTP response
+
 	private:
+		HttpContext();
 		HttpContext(const HttpContext&);
 		HttpContext&	operator=(const HttpContext&);
 
-		Event*		_multiplexing;
 		Request		_request;
 		Response	_response;
+		const Event	_multiplexing;
 };
 
 std::ostream&	operator<<(std::ostream& out, const Request& req) {

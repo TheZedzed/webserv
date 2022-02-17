@@ -11,11 +11,11 @@ class	Location {
 		Location();
 		~Location();
 
-		bool	setRoot(const Array& line);
-		bool	setAutoIndex(const Array& line);
-		bool	setRedirection(const Array& line);
-		bool	setMethod(const Array& line);
-		bool	setCgi(const Array& line);
+		void	setRoot(const String& root);
+		void	setAutoIndex(const String& autoindex);
+		void	setRedirection(const Array& line);
+		void	setMethod(const Array& line);
+		void	setCgi(const String& line);
 
 		const String&	getRoot() const;
 		const Pair&		getRedir() const;

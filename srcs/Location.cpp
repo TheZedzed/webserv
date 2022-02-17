@@ -6,13 +6,15 @@ Location::Location() : _allowed(), _cgi() {
 	_redir = std::make_pair(-1, "");
 }
 
-Location::~Location()
-{ std::cout << "Destroy current location directive.." << std::endl; }
+Location::~Location() {
+	std::cout << "Destroy current location directive";
+	std::cout << "\n[Config]:\n" << *this << std::endl;
+}
 
 const String&	Location::getRoot() const
 { return _root; }
 
-const Redirect&	Location::getRedir() const
+const Pair&	Location::getRedir() const
 { return _redir; }
 
 const bool		Location::getAuto() const
@@ -23,6 +25,31 @@ const Array&	Location::getAllow() const
 
 const String&	Location::getCgi() const
 { return _cgi; }
+
+void	Location::setRoot(const String& root)
+{ _root = root; }
+
+void	Location::setAutoIndex(const String& autoindex)
+{ _auto = (autoindex == "on" ? 1 : 0); }
+
+void	Location::setRedirection(const Array& line) {
+	Pair	item;
+
+	item = std::make_pair(std::atoi(line[1].c_str()), line[2]);
+	_redir = item;
+}
+
+void	Location::setMethod(const Array& line) {
+	Array::const_iterator	it;
+
+	it = line.begin() + 1;
+	for (; it != line.end(); ++it) {
+		_allowed.push_back(*it);
+	}
+}
+
+void	Location::setCgi(const String& cgi)
+{ _cgi = cgi; }
 
 std::ostream&	operator<<(std::ostream& out, const Location& loc) {
 	Array::const_iterator	it;

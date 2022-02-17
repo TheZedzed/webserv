@@ -1,6 +1,6 @@
 #include "Header.hpp"
 
-std::ostream&	operator<<(std::ostream& out, const Redirect& ret) {
+std::ostream&	operator<<(std::ostream& out, const Pair& ret) {
 	out << "code:" << ret.first;
 	out << "\nurl: " << ret.second;
 	return out;

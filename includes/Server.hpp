@@ -8,8 +8,8 @@
 /* manage socket, new connection on server */
 class	Server {
 	public:
-		Server(Config* config);
-		~Server(); // destroy Config
+		Server(const Config* config);
+		~Server();
 
 		const Config*	getConfig() const;
 
@@ -17,7 +17,7 @@ class	Server {
 		Server(const Server&);
 		Server&	operator=(const Server&);
 
-		Config*	_config;
+		const Config*	_config;
 };
 
 std::ostream&	operator<<(std::ostream& out, const Server& server);
