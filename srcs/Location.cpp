@@ -14,10 +14,10 @@ Location::~Location() {
 const String&	Location::getRoot() const
 { return _root; }
 
-const Pair&	Location::getRedir() const
+const Location::Redirect&	Location::getRedir() const
 { return _redir; }
 
-const bool		Location::getAuto() const
+bool		Location::getAuto() const
 { return _auto; }
 
 const Array&	Location::getAllow() const
@@ -33,7 +33,7 @@ void	Location::setAutoIndex(const String& autoindex)
 { _auto = (autoindex == "on" ? 1 : 0); }
 
 void	Location::setRedirection(const Array& line) {
-	Pair	item;
+	Redirect	item;
 
 	item = std::make_pair(std::atoi(line[1].c_str()), line[2]);
 	_redir = item;
@@ -65,7 +65,7 @@ std::ostream&	operator<<(std::ostream& out, const Location& loc) {
 	out << "\n[autoindex]: ";
 	out << loc.getAuto();
 	out << "\n[redirection]:\n";
-	out << loc.getRedir();
+	//out << loc.getRedir();
 	out << "\n[cgi]: ";
 	out << loc.getCgi();
 	out << "\n";

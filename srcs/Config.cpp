@@ -1,13 +1,13 @@
 #include "Config.hpp"
 
-Config::Config() : _routes(), _error_page() {
+Config::Config() : _error_page(), _routes() {
 	_max = 1024;
-	_names.push_back("localhost");
-	_socket = std::make_pair("127.0.0.1", "80");
+	_names.push_back("");
+	_sockets.push_back(std::make_pair("127.0.0.1", "80"));
 }
 
 Config::~Config() {
-	Route::iterator	it;
+	Routes::iterator	it;
 
 	std::cout << "Destroy current server config..." << std::endl;
 	for (it = _routes.begin(); it != _routes.end(); ++it) {
@@ -15,40 +15,35 @@ Config::~Config() {
 	}
 }
 
-const Config::Route&	Config::getRoutes() const
+const Config::Routes&	Config::getRoutes() const
 { return _routes; }
 
-const ErrPage&	Config::getErrPages() const
+const Config::ErrPage&	Config::getErrPages() const
 { return _error_page; }
+
+const Config::Sockets&	Config::getSockets() const
+{ return _sockets; }
 
 const Array&	Config::getNames() const
 { return _names; }
 
-const size_t	Config::getMax() const
+size_t		Config::getMax() const
 { return _max; }
 
-const Socket&	Config::getSocket() const
-{ return _socket; }
-
-void	Config::setSocket(const Array& line) {
-	Socket	item;
-
-	item = std::make_pair(line[1], line[2]);
-	_socket = item;
+void	Config::setSockets(const Sockets& cpy) {
+	_sockets = cpy;
 }
 
 void	Config::setMax(const String& line)
 { _max = std::atoi(line.c_str()); }
 
 void	Config::setErrorPage(const Array& line) {
-	Pair	item;
 	String	value;
 	int		key;
 
-	key = std::atoi(line[1].c_str());
 	value = line[2];
-	item = std::make_pair(key, value);
-	_error_page.insert(item);
+	key = std::atoi(line[1].c_str());
+	_error_page.insert(std::make_pair(key, value));
 }
 
 void	Config::setRoutes(const String& key, Location** loc) {
@@ -67,30 +62,55 @@ void	Config::setNames(const Array& line) {
 	}
 }
 
-std::ostream&	operator<<(std::ostream& out, const Config& config) {
-	Config::Route::const_iterator	it;
-	ErrPage::const_iterator			it2;
-	Array::const_iterator			it3;
 
-	out << "[Config server info]\n";
-	out << "\n[Socket]: ";
-	out << config.getSocket();
-	out << "\n[routes]:\n";
-	it = config.getRoutes().begin();
-	for (; it != config.getRoutes().end(); ++it) {
+
+std::ostream&	operator<<(std::ostream& out, const Config::ErrPage& errors) {
+	Config::ErrPage::const_iterator	it;
+
+	out << "\n[Error pages]:\n";
+	it = errors.begin();
+	for (; it != errors.end(); ++it) {
+		out << "code: " << it->first;
+		out << "\nuri: " << it->second;
+		out << "\n";
+	}
+	return out;
+}
+
+std::ostream&	operator<<(std::ostream& out, const Config::Sockets& sockets) {
+	Config::Sockets::const_iterator	it;
+	
+	out << "\n[Sockets]:\n";
+	it = sockets.begin();
+	for (; it != sockets.end(); ++it) {
+		out << it->first + ":" + it->second + "\n";
+	}
+	return out;
+}
+
+std::ostream&	operator<<(std::ostream& out, const Config::Routes& routes) {
+	Config::Routes::const_iterator	it;
+	
+	out << "\n[Routes]:\n";
+	it = routes.begin();
+	for (; it != routes.end(); ++it) {
 		out << "url: " << it->first;
 		out << "\ndirectives:\n" << it->second;
 	}
-	out << "\n[error pages]:\n";
-	it2 = config.getErrPages().begin();
-	for (; it2 != config.getErrPages().end(); ++it2) {
-		out << "code: " << it2->first;
-		out << "\nuri: " << it2->second;
-	}
+	return out;
+}
+
+std::ostream&	operator<<(std::ostream& out, const Config& config) {
+	Array::const_iterator	it;
+
+	out << "[Config server info]\n";
+	out << config.getSockets();
+	out << config.getRoutes();
+	out << config.getErrPages();
 	out << "\n[server_names]\n";
-	it3 = config.getNames().begin();
-	for (; it3 != config.getNames().end(); ++it3) {
-		out << *it3 << " ";
+	it = config.getNames().begin();
+	for (; it != config.getNames().end(); ++it) {
+		out << *it << " ";
 	}
 	out << "\n[client_max_body_size]: ";
 	out << config.getMax();

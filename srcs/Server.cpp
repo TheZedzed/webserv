@@ -14,4 +14,5 @@ const Config*	Server::getConfig() const
 
 std::ostream&	operator<<(std::ostream& out, const Server& server) {
 	out << server.getConfig();
+	return out;
 }

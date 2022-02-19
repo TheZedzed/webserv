@@ -25,15 +25,9 @@
 #define SUCCESS 0
 #define FAILURE 1
 
-typedef typename std::string				String;
-typedef typename std::vector<String>		Array;
-typedef typename std::map<int, String>		ErrPage;
-typedef typename std::map<String, String>	Fields;
-typedef typename std::pair<int, String>		Pair;
-typedef typename std::pair<String, String>	Socket;
+typedef std::string				String;
+typedef std::vector<String>		Array;
 
 static String	data_recv;
 
-std::ostream&	operator<<(std::ostream& out, const Pair& ret);
-std::ostream&	operator<<(std::ostream& out, const Socket& sok);
 #endif

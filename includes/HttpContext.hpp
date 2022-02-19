@@ -7,13 +7,13 @@
 
 struct	Request {
 	String	request_line;
-	Fields	header_fields;
+	std::map<String, String>	fields;
 	String	body;
 };
 
 struct	Response {
 	String	status_line;
-	Fields	header_fields;
+	std::map<String, String>	fields;
 	String	body;
 };
 
@@ -25,6 +25,7 @@ class	HttpContext {
 		bool	loop(); // Event loop
 		bool	handleRequest(int socket); // handle HTTP request
 		bool	handleResponse(int socket); // handle HTTP response
+		int		newConnection(int socket) const; // handle new connection
 
 	private:
 		HttpContext();
@@ -35,12 +36,4 @@ class	HttpContext {
 		Response	_response;
 		const Event	_multiplexing;
 };
-
-std::ostream&	operator<<(std::ostream& out, const Request& req) {
-
-}
-
-std::ostream&	operator<<(std::ostream& out, const Request& res) {
-	
-}
 #endif

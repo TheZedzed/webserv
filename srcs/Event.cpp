@@ -1,45 +1,28 @@
 #include "Event.hpp"
 
-Event::Event(const Pool& events, int fd) : _events(events), _epoll(fd)
+Event::Event(const Pool& events, int fd) : _epoll(fd), _events(events)
 { std::cout << "Create event.." << std::endl; }
 
 Event::~Event() {
+	Servers::const_iterator	it1;
 	Pool::const_iterator	it;
 
 	std::cout << "Destroy Servers.." << std::endl;
 	for (it = _events.begin(); it != _events.end(); ++it) {
-		delete it->second;// calls ~Server()
-		close(it->first);
+		it1 = it->second.begin();
+		for (; it1 != it->second.end(); ++it1) {
+			if (*it1)
+				delete *it1; // calls ~Server()
+		}
+		close(it->first); // close socket
 	}
 }
 
-const int	Event::getInstance() const
+int		Event::getInstance() const
 { return _epoll; }
 
 const Event::Pool&	Event::getEvents() const
 { return _events; }
-
-int	Event::newConnection(int socket) const {
-	Pool::const_iterator	listen_fd;
-	struct sockaddr_in	client_addr;
-	socklen_t	size;
-	int			new_socket;
-	int			res;
-
-	listen_fd = _events.find(socket);
-	if (listen_fd != _events.end()) {
-		while (42) { // loop cuz ET mode epoll
-			new_socket = accept(listen_fd->first, reinterpret_cast<sockaddr *>(&client_addr), &size);
-			if (new_socket <= 0)
-				break ;
-			res = addEvent(new_socket, EPOLLIN | EPOLLET);
-			if (res)
-				return -1;
-		}
-		return 1;
-	}
-	return 0;
-}
 
 bool	Event::modEvent(int fd) const {
 	struct sockaddr_in	client_addr;

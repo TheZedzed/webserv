@@ -11,7 +11,7 @@ HttpContext::~HttpContext()
 { std::cout << "Destroy webserver" << std::endl; }
 
 bool	HttpContext::handleResponse(int socket) {
-	char	*buf;
+	char	*buf = NULL;
 
 	printf("request:\n%s\n", data_recv.c_str());
 	sprintf(buf, "HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n Hello World!!!\n", 16);
@@ -43,20 +43,38 @@ bool	HttpContext::handleRequest(int socket) {
 	return SUCCESS;
 }
 
-bool	HttpContext::loop(void) {
-	int		epoll = _multiplexing.getInstance();
-	int		res;
-	int		nfds;
-	int		peer_fd;
+int	HttpContext::newConnection(int socket) const {
+	Event::Pool::const_iterator	listen_fd;
+	struct sockaddr_in	client_addr;
+	socklen_t	size;
+	int			fd;
 
-	if (_multiplexing.newEvent())
-		return FAILURE;
+	listen_fd = _multiplexing.getEvents().find(socket);
+	if (listen_fd != _multiplexing.getEvents().end()) {
+		while (42) { // loop cuz ET mode epoll
+			fd = accept(listen_fd->first, reinterpret_cast<sockaddr *>(&client_addr), &size);
+			if (fd <= 0)
+				break ;
+			if (_multiplexing.addEvent(fd, EPOLLIN | EPOLLET))
+				return -1;
+		}
+		return 1;
+	}
+	return 0;
+}
+
+bool	HttpContext::loop(void) {
+	int	peer_fd;
+	int	nfds;
+	int	res;
+
 	while (42) {
-		if ((nfds = epoll_wait(epoll, events, MAX_EVENTS, 1000)) == -1)
+		nfds = epoll_wait(_multiplexing.getInstance(), events, MAX_EVENTS, 1000);
+		if (nfds == -1)
 			return FAILURE;
 		for (int i = 0; i < nfds; ++i) {
 			peer_fd = events[i].data.fd;
-			if ((res = _multiplexing.newConnection(peer_fd)) == -1)
+			if ((res = newConnection(peer_fd)) == -1)
 				return FAILURE;
 			else if (res)
 				continue ;
