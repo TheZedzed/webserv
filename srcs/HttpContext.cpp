@@ -4,11 +4,13 @@ static const int	MAX_EVENTS = 256;
 static const int	BUFFER_SIZE = 4096;
 static epoll_event	events[MAX_EVENTS];
 
-HttpContext::HttpContext(const Event::Pool& events, int fd) : _multiplexing(events, fd)
+HttpContext::HttpContext(Parser* parser, Event::Pool& events, int& fd) : _parser(parser), _multiplexing(events, fd)
 { std::cout << "Creating webserver..." << std::endl;}
 
-HttpContext::~HttpContext()
-{ std::cout << "Destroy webserver" << std::endl; }
+HttpContext::~HttpContext() {
+	std::cout << "Destroy webserver" << std::endl;
+	delete _parser;
+}
 
 bool	HttpContext::handleResponse(int socket) {
 	char	*buf = NULL;

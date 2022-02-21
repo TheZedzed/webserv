@@ -11,7 +11,7 @@ class	Event {
 		typedef std::map<int, Servers>	Pool;
 
 		~Event();
-		Event(const Pool& events, int fd);
+		Event(Pool& events, int fd);
 
 		bool	addEvent(int socket, int flag) const;
 		bool	delEvent(int fd) const;
@@ -24,8 +24,8 @@ class	Event {
 		Event&	operator=(const Event&);
 		Event(const Event&);
 
-		int			_epoll;
-		const Pool&	_events; // Contain map of pair(socket, array of server*)
+		int		_epoll;
+		Pool&	_events; // Contain map of pair(socket, array of server*)
 };
 #endif
 

@@ -1,11 +1,12 @@
 #include "Server.hpp"
 
 Server::Server(const Config* config) : _config(config) {
-	std::cout << "[Create Server]\n";
-	std::cout << "Config:\n" << config << std::endl;
+	std::cout << "\t[Create Server]\n";
+	std::cout << *config << std::endl;
 }
+
 Server::~Server() {
-	std::cout << "[Destroy Server]" << std::endl;
+	std::cout << "\t[Destroy Server]" << std::endl;
 	delete _config;
 }
 

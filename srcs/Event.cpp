@@ -1,21 +1,21 @@
 #include "Event.hpp"
 
-Event::Event(const Pool& events, int fd) : _epoll(fd), _events(events)
+Event::Event(Pool& events, int fd) : _epoll(fd), _events(events)
 { std::cout << "Create event.." << std::endl; }
 
 Event::~Event() {
 	Servers::const_iterator	it1;
-	Pool::const_iterator	it;
+	Pool::iterator	it;
 
 	std::cout << "Destroy Servers.." << std::endl;
 	for (it = _events.begin(); it != _events.end(); ++it) {
 		it1 = it->second.begin();
 		for (; it1 != it->second.end(); ++it1) {
-			if (*it1)
-				delete *it1; // calls ~Server()
+			delete *it1; // calls ~Server()
 		}
 		close(it->first); // close socket
 	}
+	_events.clear();
 }
 
 int		Event::getInstance() const

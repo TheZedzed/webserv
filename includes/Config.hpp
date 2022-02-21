@@ -17,7 +17,7 @@ class	Config {
 
 		void	setErrorPage(const Array& line);
 		void	setRoutes(const String& key, Location** loc);
-		void	setSockets(const Sockets& sockets);
+		void	setSocket(const Socket& socket);
 		void	setNames(const Array& line);
 		void	setMax(const String& line);
 

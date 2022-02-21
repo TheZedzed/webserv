@@ -3,7 +3,8 @@ CXX			:= clang++
 CXXPPFLAGS	:= -I./includes
 CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98 -g
 
-FILES	:= main Server Location HttpContext Header Event Config
+FILES	:= main Server Location HttpContext Event Config \
+			parser/Parser parser/Server_directives parser/Location_directives
 RM		:= rm -rf
 SRCS	:= $(addsuffix .cpp, $(addprefix srcs/, $(FILES)))
 OBJS	:= $(SRCS:.cpp=.o)

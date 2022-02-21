@@ -6,10 +6,8 @@ Location::Location() : _allowed(), _cgi() {
 	_redir = std::make_pair(-1, "");
 }
 
-Location::~Location() {
-	std::cout << "Destroy current location directive";
-	std::cout << "\n[Config]:\n" << *this << std::endl;
-}
+Location::~Location()
+{ std::cout << "Destroy current location directive" << std::endl; }
 
 const String&	Location::getRoot() const
 { return _root; }
@@ -54,7 +52,7 @@ void	Location::setCgi(const String& cgi)
 std::ostream&	operator<<(std::ostream& out, const Location& loc) {
 	Array::const_iterator	it;
 
-	out << "[Location block]\n";
+	out << "\t[Location block]\n";
 	out << "\n[allowed]: ";
 	it = loc.getAllow().begin();
 	for (; it != loc.getAllow().end(); ++it) {
@@ -64,7 +62,7 @@ std::ostream&	operator<<(std::ostream& out, const Location& loc) {
 	out << loc.getRoot();
 	out << "\n[autoindex]: ";
 	out << loc.getAuto();
-	out << "\n[redirection]:\n";
+	out << "\n[redirection]:";
 	//out << loc.getRedir();
 	out << "\n[cgi]: ";
 	out << loc.getCgi();

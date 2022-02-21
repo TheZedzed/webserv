@@ -4,6 +4,9 @@
 # define HTTPCONTEXT_HPP
 
 # include "Event.hpp"
+# include "Parser.hpp"
+
+class	Parser;
 
 struct	Request {
 	String	request_line;
@@ -19,7 +22,7 @@ struct	Response {
 
 class	HttpContext {
 	public:
-		HttpContext(const Event::Pool& events, int fd);
+		HttpContext(Parser* parser, Event::Pool& events, int& fd);
 		~HttpContext();
 
 		bool	loop(); // Event loop
@@ -32,6 +35,7 @@ class	HttpContext {
 		HttpContext(const HttpContext&);
 		HttpContext&	operator=(const HttpContext&);
 
+		Parser*		_parser;
 		Request		_request;
 		Response	_response;
 		const Event	_multiplexing;
