@@ -47,6 +47,8 @@ static bool	listenning(const Event::Pool& pool, int& instance) {
 		return FAILURE;
 	for (it = pool.begin(); it != pool.end(); ++it) {
 		fcntl(it->first, F_SETFL, O_NONBLOCK);
+		ev.data.fd = it->first;
+		ev.events = EPOLLIN;
 		res = epoll_ctl(instance, EPOLL_CTL_ADD, it->first, &ev);
 		if (res == -1)
 			return FAILURE;	
@@ -60,14 +62,19 @@ static int	tcpSocket(const Config::Socket& sock) {
 	int		res;
 
 	res = 1;
+	bzero(&listen_address, sizeof(listen_address));
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &res, sizeof(res));
-	memset(&listen_address, 0, sizeof(sockaddr_in));
-	listen_address.sin_family = AF_INET; //ipv4
-	listen_address.sin_port = htons(std::atoi(sock.second.c_str()));
-	listen_address.sin_addr.s_addr = htonl(inet_addr(sock.first.c_str()));
-	res = bind(socket_fd, reinterpret_cast<sockaddr *>(&listen_address), sizeof(sockaddr_in));
-	res = listen(socket_fd, 100);//up to 100 connections
+	listen_address.sin_family = AF_INET; // ipv4
+	if (sock.first == "*")
+		listen_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	else if (sock.first == "localhost")
+		listen_address.sin_addr.s_addr = htonl(inet_addr("127.0.0.1"));
+	else
+		listen_address.sin_addr.s_addr = htonl(inet_addr(sock.first.c_str()));
+	listen_address.sin_port =  htons((unsigned short)std::atoi(sock.second.c_str()));
+	bind(socket_fd, reinterpret_cast<sockaddr *>(&listen_address), sizeof(sockaddr_in));
+	listen(socket_fd, 100); // up to 100 connections
 	return socket_fd;
 }
 

@@ -13,18 +13,18 @@ HttpContext::~HttpContext() {
 }
 
 bool	HttpContext::handleResponse(int socket) {
-	char	*buf = NULL;
+	char	buffer[BUFFER_SIZE] = {0};
 
 	printf("request:\n%s\n", data_recv.c_str());
-	sprintf(buf, "HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n Hello World!!!\n", 16);
-	send(socket, buf, 55, 0);
+	sprintf(buffer, "HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n Hello World!!!\n", 16);
+	send(socket, buffer, 55, 0);
 	if (_multiplexing.delEvent(socket))
 		return FAILURE;
 	return SUCCESS;
 }
 
 bool	HttpContext::handleRequest(int socket) {
-	String	buffer(BUFFER_SIZE, 0);
+	char	buffer[BUFFER_SIZE] = {0};
 	int		rlen;
 
 	while (26) {
@@ -40,7 +40,6 @@ bool	HttpContext::handleRequest(int socket) {
 			break ;
 		}
 		data_recv.append(buffer, rlen); // HTTP request
-		buffer.clear();
 	}
 	return SUCCESS;
 }
@@ -51,14 +50,19 @@ int	HttpContext::newConnection(int socket) const {
 	socklen_t	size;
 	int			fd;
 
+	size = sizeof(client_addr);
+	bzero(&client_addr, size);
 	listen_fd = _multiplexing.getEvents().find(socket);
 	if (listen_fd != _multiplexing.getEvents().end()) {
+		printf("New connection\n");
 		while (42) { // loop cuz ET mode epoll
 			fd = accept(listen_fd->first, reinterpret_cast<sockaddr *>(&client_addr), &size);
 			if (fd <= 0)
 				break ;
 			if (_multiplexing.addEvent(fd, EPOLLIN | EPOLLET))
 				return -1;
+			else
+				break ;
 		}
 		return 1;
 	}

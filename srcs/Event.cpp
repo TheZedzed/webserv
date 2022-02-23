@@ -31,7 +31,9 @@ bool	Event::modEvent(int fd) const {
 	int			res;
 
 	ev.data.fd = fd;
-	ev.events |= EPOLLOUT;
+	ev.events = EPOLLOUT;
+	size = sizeof(client_addr);
+	bzero(&client_addr, sizeof(client_addr));
 	getsockname(fd, reinterpret_cast<sockaddr*>(&client_addr), &size);
 	printf("client %s:%d request:\n%s\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port, data_recv.c_str());
 	res = epoll_ctl(_epoll, EPOLL_CTL_MOD, fd, &ev);
@@ -46,6 +48,7 @@ bool	Event::delEvent(int fd) const {
 	int			res;
 
 	size = sizeof(client_addr);
+	bzero(&client_addr, sizeof(client_addr));
 	getsockname(fd, reinterpret_cast<sockaddr*>(&client_addr), (&size));
 	printf("client:%s on port:%d connexion close!\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
 	res = epoll_ctl(_epoll, EPOLL_CTL_DEL, fd, NULL);
