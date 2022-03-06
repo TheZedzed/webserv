@@ -29,12 +29,12 @@ bool	HttpContext::handleRequest(int socket) {
 
 	while (26) {
 		rlen = recv(socket, &buffer, BUFFER_SIZE - 1, 0);
-		if (rlen == 0) {//peer disconnect
+		if (rlen == 0) { //peer disconnect
 			if (_multiplexing.delEvent(socket))
 				return FAILURE;
 			break ;
 		}
-		else if (rlen == -1) {//finish read with non block fd (EAGAIN or EWOULDBLOCK)
+		else if (rlen == -1) { //finish read with non block fd (EAGAIN or EWOULDBLOCK)
 			if (_multiplexing.modEvent(socket))
 				return FAILURE;
 			break ;

@@ -8,20 +8,16 @@
 
 class	Parser;
 
-struct	Request {
-	String	request_line;
-	std::map<String, String>	fields;
-	String	body;
-};
-
-struct	Response {
-	String	status_line;
-	std::map<String, String>	fields;
+struct	Http {
+	Array	start_line;
+	std::map<String, String>	headers;
 	String	body;
 };
 
 class	HttpContext {
 	public:
+		//typedef std::vector<Cgi>	Cgis;
+
 		HttpContext(Parser* parser, Event::Pool& events, int& fd);
 		~HttpContext();
 
@@ -36,8 +32,7 @@ class	HttpContext {
 		HttpContext&	operator=(const HttpContext&);
 
 		Parser*		_parser;
-		Request		_request;
-		Response	_response;
+		Http		_handler;
 		const Event	_multiplexing;
 };
 #endif
