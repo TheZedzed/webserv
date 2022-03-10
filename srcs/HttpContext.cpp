@@ -12,17 +12,87 @@ HttpContext::~HttpContext() {
 	delete _parser;
 }
 
-bool	HttpContext::handleResponse(int socket) {
-	char	buffer[BUFFER_SIZE] = {0};
+bool	Response::_wrong_method(const String& elem)
+{ return elem != "GET" && elem != "DELETE" && elem != "POST"; }
 
-	printf("request:\n%s\n", data_recv.c_str());
-	sprintf(buffer, "HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n Hello World!!!\n", 16);
-	send(socket, buffer, 55, 0);
+bool	Response::_wrong_version(const String& elem)
+{ return elem != "HTTP/1.1"; }
+
+void	Response::parseSL() {
+	Sstream	tmp;
+	String	line;
+	String	elem;
+
+	std::getline(_raw, line);
+	tmp.str(line);
+	while (tmp >> elem)
+		_start.push_back(elem);
+	if (_start.size() != 3 || _wrong_method(_start[0]))
+		_err = 400;
+	else if (_wrong_version(_start[2]))
+		_err = 505;
+}
+
+void	Response::parseHead() {
+	Sstream	tmp;
+	String	line;
+	String	key;
+	String	value;
+
+	if (_err == 200) {
+		while (std::getline(_raw, line) && line.size()) {
+			tmp.clear();
+			tmp.str(line);
+			tmp >> key;
+			tmp >> value;
+			_headers.insert(std::make_pair(key, value));
+		}
+	}
+}
+
+/*
+bool	HttpContext::handleResponse(int socket) {
+
+	_handler = new Response(data_recv);// create a dynamic response with data_recv
+	_handler->parseSL();// parse start line
+	_handler->parseHead();// parse headers
+	_handler->parseBody();// parse body if any
+
+	// search for servers listenning on the socket (map<socket, Servers*>)
+	Event::Pool::const_iterator	it = getEvent().getEvents().find(socket);
+
+	if (it != getEvent().getEvents().end()) {
+		Event::Servers::const_iterator	it2 = (*it).second.begin();
+
+		//search for host in servers
+		for (; it2 != (*it).second.end(); ++it2) { // loop on servers
+			Response::Fields::const_iterator	res = _handler->getHead().find("Host"); // cherche le host (de data_recv) correspondant  dans le vecteur de serverur 
+
+			//loop on it2 (curr server names)
+			Array::const_iterator	it3 = (*it2)->getConfig()->getNames().begin();
+			for (; it3 != (*it2)->getConfig()->getNames().end(); ++it3) {
+				if (res->second == *it3)
+					"make response with it2 Server info"
+			}
+		}
+		"make response with FIRST SERVER info ON VECTOR"
+
+		Config::Routes::const_iterator	it3 = (*it2)->getConfig()->getRoutes().find("/"); // cherche la route dans it2 server
+		if ((*it3).second->getCgi() != "")
+			execute CGI;
+
+		if (_handler.getBody().size() >= (*it2)->getConfig()->getMax())
+			return (error("TOO LONG BODY"););
+	}
+
+
+	//send(socket, buffer, 55, 0);
+	delete _handler;
 	if (_multiplexing.delEvent(socket))
 		return FAILURE;
 	return SUCCESS;
 }
-
+*/
 bool	HttpContext::handleRequest(int socket) {
 	char	buffer[BUFFER_SIZE] = {0};
 	int		rlen;
@@ -39,7 +109,7 @@ bool	HttpContext::handleRequest(int socket) {
 				return FAILURE;
 			break ;
 		}
-		data_recv.append(buffer, rlen); // HTTP request
+		data_recv.append(buffer, rlen); // request recv
 	}
 	return SUCCESS;
 }
