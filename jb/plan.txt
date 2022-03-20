@@ -1,0 +1,33 @@
+*******1************
+	_handler = new Response(data_recv);// create a dynamic response with data_recv
+int mixing::receiveRequest(const char* buffer)
+
+dans le fichier mixing.cpp
+*******2************
+	_handler->parseSL();// parse start line
+void Request::parseRequestLine(size_t posCLRF)
+
+dans request.cpp
+*******3************
+	_handler->parseBody();// parse body if any
+
+void Request::parseBody()
++ le getbody (body.hpp)
+dans request.cpp
+*******4************
+les servers sont stockes dans 		const std::vector<ServerInfo>*	_infoVirServs;	// Server blocks from config file that match this port
+(request.hpp)
+
+tout ce qui concerne le matchmaking:
+const ServerInfo* findVirtServ(const std::vector<ServerInfo>* infoVirServs, const std::string& hostValue)
+std::pair<const std::string, const Location*> 
+		matchLocation(const std::map<std::string, Location> *loc, const std::string& locName);
+        std::pair<const std::string, const Location*>
+		locationSearcher(const std::vector<ServerInfo> *srv, std::pair<std::string, std::string> const &names);
+    voir utils.hpp
+
+*******5************
+on lance la fonction
+    void Response::execCgi(const std::string& realUri, std::string* cgiName)
+    (presente dans response.hpp) qui lance le executecgi (cgi.cpp)
+qui lance la fonction 
