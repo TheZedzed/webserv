@@ -56,42 +56,27 @@ static bool	listenning(const Event::Pool& pool, int& instance) {
 	return SUCCESS;
 }
 
-static int	tcpSocket(const Config::Socket& sock) {
-	struct sockaddr_in	listen_address;
+static bool	build_events(Parser* parser, Event::Pool& pool) {
+	Parser::Listenning::const_iterator	it;
+	struct sockaddr_in	addr;
 	int		socket_fd;
 	int		res;
 
 	res = 1;
-	bzero(&listen_address, sizeof(listen_address));
-	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &res, sizeof(res));
-	listen_address.sin_family = AF_INET; // ipv4
-	if (sock.first == "*")
-		listen_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	else if (sock.first == "localhost")
-		listen_address.sin_addr.s_addr = htonl(inet_addr("127.0.0.1"));
-	else
-		listen_address.sin_addr.s_addr = htonl(inet_addr(sock.first.c_str()));
-	listen_address.sin_port =  htons((unsigned short)std::atoi(sock.second.c_str()));
-	bind(socket_fd, reinterpret_cast<sockaddr *>(&listen_address), sizeof(sockaddr_in));
-	listen(socket_fd, 100); // up to 100 connections
-	return socket_fd;
-}
-
-static bool	build_events(Parser* parser, Event::Pool& pool, int& instance) {
-	Parser::Listenning::const_iterator	it;
-	std::pair<int, Event::Servers>	item;
-
 	it = parser->getMap().begin();
 	for (; it != parser->getMap().end(); ++it) {
-		item = std::make_pair(tcpSocket(it->first), it->second);
-		pool.insert(item);
+		bzero(&addr, sizeof(addr));
+		socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+		setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &res, sizeof(res));
+		addr.sin_family = AF_INET; // ipv4
+		addr.sin_addr.s_addr = htonl(inet_addr(it->first.first.c_str()));
+		addr.sin_port =  htons(std::atoi(it->first.second.c_str()));
+		if (bind(socket_fd, (sockaddr *)&addr, sizeof(sockaddr_in)))
+			return FAILURE;
+		if (listen(socket_fd, 100)) // up to 100 connections
+			return FAILURE;
+		pool.insert(std::make_pair(socket_fd, it->second));
 	}
-#if DEBUG
-	print_map2(pool);
-#endif
-	if (listenning(pool, instance))
-		return FAILURE;
 	return SUCCESS;
 }
 
@@ -103,13 +88,15 @@ int	main(int ac, char **av) {
 	try {
 		signal(SIGINT, handler);
 		if (ac > 2) 
-			throw "Usage: ./webserve [config_file]"; // must inhirit std::exception
+			throw "Usage: ./webserve [config_file]";
 		parser = new Parser(ac == 1 ? "ez.conf" : av[1]);
-		if (build_events(parser, events, epoll))
-			throw "Failed start listenning on servers"; // must inhirit std::exception
+		if (build_events(parser, events))
+			throw "Failed build events";
+		if (listenning(events, epoll))
+			throw "Failed start listenning on servers";
 		webserver = new HttpContext(parser, events, epoll);
 		if (webserver->loop())
-			throw "Failure during execution"; // must inhirit std::exception
+			throw "Failure during execution";
 		delete webserver;
 	}
 	catch(const char* msg) {

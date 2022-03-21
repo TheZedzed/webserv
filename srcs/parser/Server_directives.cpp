@@ -51,8 +51,14 @@ bool	Parser::listen_directive(int flag) {
 	if (!flag && (_line.size() != 3 || *_line.rbegin() != ";"))
 		return FAILURE;
 	pos = _line[1].find(':');
+	if (pos == std::string::npos)
+		return FAILURE;
 	host = _line[1].substr(0, pos);
 	port = _line[1].substr(pos + 1);
+	if (host == "localhost")
+		host = "127.0.0.1";
+	else if (host == "*")
+		host = "0.0.0.0";
 	std::strtol(port.c_str(), &end, 10);
 	if (!flag) {
 		it = _tmp.begin();

@@ -59,10 +59,15 @@ void	Parser::fill_map(int flag) {
 			if (res != _map.end())
 				res->second.push_back(_curr_serv);
 			else {
-				servers.clear();
-				servers.push_back(_curr_serv);
-				_map.insert(std::make_pair(*it, servers));
-			}
+				res = _map.find(std::make_pair("0.0.0.0", (*it).second));
+				if (res != _map.end())
+					res->second.push_back(_curr_serv);
+				else {
+					servers.clear();
+					servers.push_back(_curr_serv);
+					_map.insert(std::make_pair(*it, servers));
+				}
+			}	
 		}
 	}
 	_tmp.clear();

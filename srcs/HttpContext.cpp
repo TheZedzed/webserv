@@ -93,6 +93,7 @@ bool	HttpContext::handleResponse(int socket) {
 	return SUCCESS;
 }
 */
+
 bool	HttpContext::handleRequest(int socket) {
 	char	buffer[BUFFER_SIZE] = {0};
 	int		rlen;
