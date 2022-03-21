@@ -18,6 +18,7 @@ bool	Response::_wrong_method(const String& elem)
 bool	Response::_wrong_version(const String& elem)
 { return elem != "HTTP/1.1"; }
 
+/*
 void	Response::parseSL() {
 	Sstream	tmp;
 	String	line;
@@ -50,7 +51,6 @@ void	Response::parseHead() {
 	}
 }
 
-/*
 bool	HttpContext::handleResponse(int socket) {
 
 	_handler = new Response(data_recv);// create a dynamic response with data_recv
@@ -93,6 +93,11 @@ bool	HttpContext::handleResponse(int socket) {
 	return SUCCESS;
 }
 */
+
+bool	HttpContext::handleResponse(int socket) {
+	(void)socket;
+	return SUCCESS;
+}
 
 bool	HttpContext::handleRequest(int socket) {
 	char	buffer[BUFFER_SIZE] = {0};

@@ -11,14 +11,15 @@ class	Parser;
 class	Response {
 	public:
 		typedef std::map<String, String>	Fields;
-		typedef std::stringstream			Sstream;
 
 		~Response() {
 			_start.clear();
 			_headers.clear();
 		}
-		Response(const String& req) : _raw(req), _err(200) {}
+		Response(const String& req) : _err(200)
+		{ parser(req); }
 
+		void	parser(const String&);
 		void	parseSL();
 		void	parseHead();
 		void	parseBody();
@@ -36,7 +37,6 @@ class	Response {
 		bool	_wrong_version(const String&);
 
 		int		_err;
-		Sstream	_raw;
 		String	_body;
 		Array	_start;
 		Fields	_headers;
