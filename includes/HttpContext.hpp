@@ -6,40 +6,66 @@
 # include "Event.hpp"
 # include "Parser.hpp"
 
-class	Parser;
-
-class	Response {
+class	Request {
 	public:
 		typedef std::map<String, String>	Fields;
 
-		~Response() {
-			_start.clear();
-			_headers.clear();
-		}
-		Response(const String& req) : _err(200)
-		{ parser(req); }
+		~Request();
+		Request(const String& raw) : _data(raw) {}
 
-		void	parser(const String&);
-		void	parseSL();
-		void	parseHead();
-		void	parseBody();
-		bool	response(int fd);
+		int	parser();
 
-		const Fields&	getHead() const
-		{ return _headers; }
+	private:
+		Request();
+		Request(const Request&);
+		Request&	operator=(const Request&);
+
+		int		_parseSL();
+		int		_parseHeader();
+		int		_parseBody();
+		bool	_wrong_method(const String&);
+		bool	_wrong_version(const String&);
+
+		Stream	_data;
+		String	_body;
+		Array	_start;
+		Fields	_headers;
+};
+
+int	Request::_parseSL() {
+	return SUCCESS;
+}
+
+int	Request::_parseHeader() {
+	return SUCCESS;
+}
+
+int	Request::_parseBody() {
+	return SUCCESS;
+}
+
+int	Request::parser() {
+	int	err;
+
+	err = 200;
+	while (1) {
+
+	}
+	return err;
+}
+
+class	Response {
+	public:
+
+		~Response() {}
+		Response(const Request& req) : _err(200) {}
 
 	private:
 		Response();
 		Response(const Response&);
 		Response&	operator=(const Response&);
 
-		bool	_wrong_method(const String&);
-		bool	_wrong_version(const String&);
-
 		int		_err;
-		String	_body;
-		Array	_start;
-		Fields	_headers;
 };
 
 class	HttpContext {
@@ -61,8 +87,10 @@ class	HttpContext {
 		HttpContext(const HttpContext&);
 		HttpContext&	operator=(const HttpContext&);
 
+		String		_raw;
+		Request*	_req;
+		Response*	_res;
 		Parser*		_parser;
-		Response*	_handler;
 		const Event	_multiplexing;
 };
 #endif

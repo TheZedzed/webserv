@@ -25,17 +25,11 @@ const Event::Pool&	Event::getEvents() const
 { return _events; }
 
 bool	Event::modEvent(int fd) const {
-	struct sockaddr_in	client_addr;
 	struct epoll_event	ev;
-	socklen_t	size;
-	int			res;
+	int	res;
 
 	ev.data.fd = fd;
 	ev.events = EPOLLOUT;
-	size = sizeof(client_addr);
-	bzero(&client_addr, sizeof(client_addr));
-	getsockname(fd, reinterpret_cast<sockaddr*>(&client_addr), &size);
-	printf("client %s:%d request:\n%s\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port, data_recv.c_str());
 	res = epoll_ctl(_epoll, EPOLL_CTL_MOD, fd, &ev);
 	if (res)
 		return FAILURE;

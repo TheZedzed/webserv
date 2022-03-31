@@ -26,9 +26,8 @@
 #define FAILURE 1
 
 typedef std::string				String;
+typedef std::ifstream			Stream;
 typedef std::vector<String>		Array;
-
-static String	data_recv;
 
 /* directive location in server context */
 class	Location {

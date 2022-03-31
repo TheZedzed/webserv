@@ -20,7 +20,7 @@ bool	Response::_wrong_version(const String& elem)
 
 /*
 void	Response::parseSL() {
-	Sstream	tmp;
+	std::stringstream	tmp;
 	String	line;
 	String	elem;
 
@@ -115,7 +115,7 @@ bool	HttpContext::handleRequest(int socket) {
 				return FAILURE;
 			break ;
 		}
-		data_recv.append(buffer, rlen); // request recv
+		_raw.append(buffer, rlen); // request recv
 	}
 	return SUCCESS;
 }
@@ -132,9 +132,12 @@ int	HttpContext::newConnection(int socket) const {
 	if (listen_fd != _multiplexing.getEvents().end()) {
 		printf("New connection\n");
 		while (42) { // loop cuz ET mode epoll
-			fd = accept(listen_fd->first, reinterpret_cast<sockaddr *>(&client_addr), &size);
+			fd = accept(listen_fd->first, (sockaddr *)&client_addr, &size);
 			if (fd <= 0)
+			{	
+				printf("yes\n");
 				break ;
+			}
 			if (_multiplexing.addEvent(fd, EPOLLIN | EPOLLET))
 				return -1;
 			else

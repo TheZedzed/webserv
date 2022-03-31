@@ -3,7 +3,7 @@
 Parser::Parser(const char* file) : _error(0) {
 	this->open_file(file);
 	this->loop(0);
-	if (this->getError())
+	if (_error)
 		throw "Wrong config file!";
 	this->open_file(file);
 	this->loop(1);
@@ -21,7 +21,7 @@ int		Parser::getError() const
 void	Parser::open_file(const char* file) {
 	_in.open(file);
 	if (!_in.is_open())
-		throw "Error openning config file!";
+		_error = 1;
 }
 
 /* split read buffer in strings then check for empty line */
@@ -48,13 +48,14 @@ void	Parser::fill_map(int flag) {
 	Config::Sockets::const_iterator	it;
 	static Event::Servers			servers;
 	Listenning::iterator			res;
+	Config::Sockets					curr = _curr_conf->getSockets();
 
 	if (flag && !_error) {
-		it = _curr_conf->getSockets().begin();
-		if (_curr_conf->getSockets().empty())
+		if (curr.empty())
 			_curr_conf->setSocket(std::make_pair("127.0.0.1", "80"));
+		std::sort(curr.begin(), curr.end());
 		_curr_serv = new Server(_curr_conf);
-		for (; it != _curr_conf->getSockets().end(); ++it) {
+		for (it = curr.begin(); it != curr.end(); ++it) {
 			res = _map.find(*it);
 			if (res != _map.end())
 				res->second.push_back(_curr_serv);

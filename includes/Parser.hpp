@@ -11,7 +11,6 @@
 class	Parser {
 	public:
 		typedef std::map<Config::Socket, Event::Servers>	Listenning;
-		typedef std::ifstream	Stream;
 
 		Parser(const char* file);
 		~Parser();
