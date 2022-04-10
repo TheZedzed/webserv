@@ -5,7 +5,9 @@
 
 # include "Config.hpp"
 
-/* manage socket, new connection on server */
+/* class Server:
+** server with his configuration
+*/
 class	Server {
 	public:
 		Server(const Config* config);
@@ -21,4 +23,5 @@ class	Server {
 };
 
 std::ostream&	operator<<(std::ostream& out, const Server& server);
+
 #endif

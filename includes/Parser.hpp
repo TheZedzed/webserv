@@ -3,11 +3,12 @@
 # ifndef PARSER_HPP
 # define PARSER_HPP
 
-# include "HttpContext.hpp"
-
-# include <fstream>
-# include <sstream>
-
+# include "Event.hpp"
+/*
+** class Parser:
+** parse httpcontext config file (*.conf)
+** following mandatory part of the subject
+*/
 class	Parser {
 	public:
 		typedef std::map<Config::Socket, Event::Servers>	Listenning;
@@ -38,8 +39,8 @@ class	Parser {
 		Parser(const Parser&);
 		Parser&	operator=(const Parser&);
 
-		bool	empty_line(void);
-		void	fill_map(int flag);
+		bool	_empty_line(void);
+		void	_fill_map(int flag);
 
 		int				_error;
 		Server*			_curr_serv;
@@ -50,5 +51,6 @@ class	Parser {
 		String			_buffer;
 		Array			_line;
 		Config::Sockets	_tmp; // save curr_conf sockets
-};		
+};
+
 #endif

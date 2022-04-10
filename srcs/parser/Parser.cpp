@@ -25,7 +25,7 @@ void	Parser::open_file(const char* file) {
 }
 
 /* split read buffer in strings then check for empty line */
-bool	Parser::empty_line() {
+bool	Parser::_empty_line() {
 	std::stringstream	tmp(_buffer);
 	String	elem;
 
@@ -44,7 +44,7 @@ bool	Parser::empty_line() {
 	return 0;
 }
 
-void	Parser::fill_map(int flag) {
+void	Parser::_fill_map(int flag) {
 	Config::Sockets::const_iterator	it;
 	static Event::Servers			servers;
 	Listenning::iterator			res;
@@ -76,7 +76,7 @@ void	Parser::fill_map(int flag) {
 
 void	Parser::loop(int flag) {
 	while (!_error && std::getline(_in, _buffer)) {
-		if (empty_line())
+		if (_empty_line())
 			continue ;
 		else if (_line[0] == "}" && _line.size() != 1)
 			_error = 3;
@@ -84,7 +84,7 @@ void	Parser::loop(int flag) {
 			if (flag)
 				_curr_conf = new Config();
 			while (!_error && std::getline(_in, _buffer)) {
-				if (empty_line())
+				if (_empty_line())
 					continue ;
 				else if (_line[0] == "}" && _line.size() == 1)
 					break ;
@@ -93,7 +93,7 @@ void	Parser::loop(int flag) {
 				else if (wrong_sdirective(flag))
 					_error = 4;
 			}
-			fill_map(flag);
+			_fill_map(flag);
 		}
 		else
 			_error = 2;

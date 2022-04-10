@@ -1,4 +1,4 @@
-#include "Parser.hpp"
+#include "HttpContext.hpp"
 
 static HttpContext	*webserver;
 
@@ -97,7 +97,6 @@ int	main(int ac, char **av) {
 		webserver = new HttpContext(parser, events, epoll);
 		if (webserver->loop())
 			throw "Failure during execution";
-		delete webserver;
 	}
 	catch(const char* msg) {
 		std::cerr << msg << std::endl;

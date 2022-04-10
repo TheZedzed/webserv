@@ -1,9 +1,9 @@
 NAME		:= webserv
-CXX			:= clang++
+CXX			:= g++
 CXXPPFLAGS	:= -I./includes
 CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98 -g
 
-FILES	:= main Server Location HttpContext Event Config \
+FILES	:= main Server Location HttpContext Event Config Response Request Base \
 			parser/Parser parser/Server_directives parser/Location_directives
 RM		:= rm -rf
 SRCS	:= $(addsuffix .cpp, $(addprefix srcs/, $(FILES)))

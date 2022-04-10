@@ -5,6 +5,13 @@
 
 # include "Location.hpp"
 
+/*
+** class Config:
+** servers config following mandatory part of the subject
+** contain location block
+** directives:
+**	listen, error_page, client_max_body_size, server_names
+*/
 class	Config {
 	public:
 		typedef std::map<String, Location*>		Routes;

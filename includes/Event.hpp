@@ -5,6 +5,13 @@
 
 # include "Server.hpp"
 
+/*
+** class Event:
+** manage I/O multiplexing
+** manage pool of events:
+**	manage fd in an epoll instance
+**	use a map of socket + servers
+*/
 class	Event {
 	public:
 		typedef std::vector<Server*>	Servers;
