@@ -1,171 +1,200 @@
 #include "HttpContext.hpp"
 
-static const int	MAX_EVENTS = 256;
-static const int	BUFFER_SIZE = 4096;
-static epoll_event	events[MAX_EVENTS];
+static int			peer_fd;
+static epoll_event	events[256];
 
-HttpContext::HttpContext(Parser* parser, Event::Pool& events, int& fd) : _server_info(parser), _multiplexer(events, fd)
-{ std::cout << "Creating webserver..." << std::endl;}
+HttpContext::HttpContext(Event::Pool& events, int& fd) : _multiplexer(events, fd)
+{ std::cout << "Creating webserver!" << std::endl;}
 
 HttpContext::~HttpContext() {
-	std::cout << "Destroy webserver" << std::endl;
-	delete _server_info;
+	Clients::iterator	it;
+
+	std::cout << "Destroy webserver!" << std::endl;
+	for (it = _clients.begin(); it != _clients.end(); ++it) {
+		delete it->second;
+	}
 }
 
 const Event&	HttpContext::getMultiplexer() const
 { return _multiplexer; }
 
-/*
-
-bool	HttpContext::handleResponse(int socket) {
-
-	// search for servers listenning on the socket (map<socket, Servers*>)
-	Event::Pool::const_iterator	it = getEvent().getEvents().find(socket);
-
-	if (it != getEvent().getEvents().end()) {
-		Event::Servers::const_iterator	it2 = (*it).second.begin();
-
-		//search for host in servers
-		for (; it2 != (*it).second.end(); ++it2) { // loop on servers
-			Response::Fields::const_iterator	res = _handler->getHead().find("Host"); // cherche le host (de data_recv) correspondant  dans le vecteur de serverur 
-
-			//loop on it2 (curr server names)
-			Array::const_iterator	it3 = (*it2)->getConfig()->getNames().begin();
-			for (; it3 != (*it2)->getConfig()->getNames().end(); ++it3) {
-				if (res->second == *it3)
-					"make response with it2 Server info"
-			}
-		}
-		"make response with FIRST SERVER info ON VECTOR"
-
-		Config::Routes::const_iterator	it3 = (*it2)->getConfig()->getRoutes().find("/"); // cherche la route dans it2 server
-		if ((*it3).second->getCgi() != "")
-			execute CGI;
-
-		if (_handler.getBody().size() >= (*it2)->getConfig()->getMax())
-			return (error("TOO LONG BODY"););
-	}
-
-
-	//send(socket, buffer, 55, 0);
-	delete _handler;
-	if (_multiplexer.delEvent(socket))
-		return FAILURE;
-	return SUCCESS;
-}
-
-bool	HttpContext::handleResponse(int socket) {
-	Event::Pool	events_pool	= getMultiplexer().getEvents();
-	Response*	response = nullptr;
-	Server*		cur_serv = nullptr;
-
-	// search for servers listenning on the socket
-	Event::Pool::iterator	servers	= events_pool.find(socket);
-
-	// iterator on the first server
-	Event::Servers::const_iterator	curr_serv = (*servers).second.begin();
-	
-	response = new Response(req, curr_serv, _err_code);
-
-	//search for host in servers
-	for (; curr_serv != (*servers).second.end(); ++curr_serv) { // loop on servers
-		Response::Fields::const_iterator	res = _handler->getHead().find("Host"); // cherche le host (de data_recv) correspondant  dans le vecteur de serverur 
-
-		//loop on it2 (curr server names)
-		Array::const_iterator	it3 = (*it2)->getConfig()->getNames().begin();
-		for (; it3 != (*it2)->getConfig()->getNames().end(); ++it3) {
-			if (res->second == *it3)
-				"make response with it2 Server info"
-		}
-	}
-	"make response with FIRST SERVER info ON VECTOR"
-
-		Config::Routes::const_iterator	it3 = (*it2)->getConfig()->getRoutes().find("/"); // cherche la route dans it2 server
-		if ((*it3).second->getCgi() != "")
-			execute CGI;
-
-		if (_handler.getBody().size() >= (*it2)->getConfig()->getMax())
-			return (error("TOO LONG BODY"););
-	}
-	send(socket, response->getData(), response->getSize(), 0));
-	delete response;
-	return SUCCESS;
-}
-
-*/
-
-bool	HttpContext::handleRequest(int socket) {
-	char	buffer[BUFFER_SIZE] = {0};
-	String	raw_data;
+bool	HttpContext::handleRequest() {
+	char	buffer[4096] = {0};
+	String	raw;
 	int		rlen;
 
 	while (26) {
-		rlen = recv(socket, &buffer, BUFFER_SIZE - 1, 0);
+		rlen = recv(peer_fd, &buffer, 4095, 0);
 		if (rlen == 0) { //peer disconnect
-			if (_multiplexer.delEvent(socket))
+			if (_delClient())
 				return FAILURE;
 			break ;
 		}
 		else if (rlen == -1) { //finish read with non block fd (EAGAIN or EWOULDBLOCK)
-			if (_multiplexer.modEvent(socket))
+			if (_modClient(raw))
 				return FAILURE;
 			break ;
 		}
-		raw_data.append(buffer, rlen); // request recv
+		raw.append(buffer, rlen); // request recv
 	}
-	_request = new Request(raw_data);
 	return SUCCESS;
 }
 
-int	HttpContext::newConnection(int socket) const {
-	Event::Pool::const_iterator	listen_fd;
+/*
+bool	HttpContext::handleResponse(int socket) {
+
+	// search for servers listenning on the socket
+	Event::Pool::const_iterator	servers;
+
+	servers	= getMultiplexer().getEvents().find(socket);
+
+	// looking for requested host
+	Request::Fields::const_iterator	match;
+	Event::Servers::const_iterator	serv;
+	Array::const_iterator			curr;
+	Array::const_iterator			end;
+	bool	found;
+
+	found = false;
+	serv = (*servers).second.begin();
+	match = _request->getHeaders().find("host:");
+	//if (match == _request->getHeaders().end())
+	//	throw 400;
+	for ( ;serv != (*servers).second.end() && !found; ++serv) {
+		end = (*serv)->getConfig()->getNames().end();
+		curr = (*serv)->getConfig()->getNames().begin();
+		for ( ;curr != end && match->second != *curr && !found; ++curr) {
+			if (match->second == *curr)
+				found = true;
+		}
+	}
+	serv = !found ? (*servers).second.begin() : serv;
+
+	// send response to the client
+	size_t	offset = 0;
+	size_t	size = _response->getData().size();
+	const char	*str = _response->getData().c_str();
+
+	while (1) {
+		send(socket, str + offset, 4096, 0);
+		size /= 4096;
+		if (!size)
+			break ;
+		offset += 4096;
+	}
+	Response	success = Response(200, socket);
+	delete _request;
+	delete _response;
+	return SUCCESS;
+}
+*/
+
+bool	HttpContext::_modClient(const String& raw) {
+	Clients::iterator	it;
+
+	it = _clients.find(peer_fd);
+	(it->second)->setReq(raw);
+	if (_multiplexer.modEvent(peer_fd))
+		return FAILURE;
+	return SUCCESS;
+}
+
+bool	HttpContext::_delClient() {
+	delete _clients[peer_fd];
+	_clients.erase(peer_fd);
+	if (_multiplexer.delEvent(peer_fd))
+		return FAILURE;
+	return SUCCESS;
+}
+
+bool	HttpContext::_addClient(int fd, const Event::Servers& servers) {
+	Client*	client;
+
+	client = new Client(fd, servers);
+	_clients.insert(std::make_pair(fd, client));
+	if (_multiplexer.addEvent(fd, EPOLLIN | EPOLLET))
+		return FAILURE;
+	return SUCCESS;
+}
+
+int	HttpContext::newConnection() {
+	Event::Pool::const_iterator	listen;
 	struct sockaddr_in	client_addr;
 	socklen_t	size;
 	int			fd;
 
 	size = sizeof(client_addr);
 	bzero(&client_addr, size);
-	listen_fd = _multiplexer.getEvents().find(socket);
-	if (listen_fd != _multiplexer.getEvents().end()) {
-		printf("New connection\n");
-		while (42) { // loop cuz ET mode epoll
-			fd = accept(listen_fd->first, (sockaddr *)&client_addr, &size);
-			if (fd <= 0)
-				break ;
-			if (_multiplexer.addEvent(fd, EPOLLIN | EPOLLET))
-				return -1;
-			else
-				break ;
+	listen = _multiplexer.getEvents().find(peer_fd);
+	if (listen != _multiplexer.getEvents().end()) {
+		while (42) {
+			fd = accept(listen->first, (sockaddr *)&client_addr, &size);
+			if (fd == -1)
+				return FAILURE;
+			if (_addClient(fd, listen->second))
+				return FAILURE;
+			break ;
 		}
-		return 1;
+		return SUCCESS;
 	}
-	return 0;
+	return 2;
 }
 
-bool	HttpContext::loop(void) {
-	int	peer_fd;
-	int	nfds;
+bool	HttpContext::worker(int nfds) {
 	int	res;
 
-	while (42) {
-		nfds = epoll_wait(_multiplexer.getInstance(), events, MAX_EVENTS, 1000);
-		if (nfds == -1)
+	for (int i = 0; i < nfds; ++i) {
+		peer_fd = events[i].data.fd;
+		res = newConnection();
+		if (res == FAILURE)
 			return FAILURE;
-		for (int i = 0; i < nfds; ++i) {
-			peer_fd = events[i].data.fd;
-			if ((res = newConnection(peer_fd)) == -1)
+		else if (res == SUCCESS)
+			continue ;
+		if (events[i].events & EPOLLIN) {
+			if (handleRequest())
 				return FAILURE;
-			else if (res)
-				continue ;
-			if (events[i].events & EPOLLIN) {
-				if (handleRequest(peer_fd))
-					return FAILURE;
-			}
-			if (events[i].events & EPOLLOUT) {
-				if (handleResponse(peer_fd))
-					return FAILURE;
-			}
+		}
+		if (events[i].events & EPOLLOUT) {
+			if (handleResponse())
+				return FAILURE;
 		}
 	}
 	return SUCCESS;
+}
+
+bool	HttpContext::_sendRes(int code) {
+	Clients::iterator	it;
+
+	it = _clients.find(peer_fd);
+	if (it != _clients.end()) {
+		_clients[peer_fd]->setRes(code);
+		if (_clients[peer_fd]->sendRes())
+			return FAILURE;
+		if (_delClient())
+			return FAILURE;
+	}
+	return SUCCESS;
+}
+
+void	HttpContext::loop(void) {
+	int	epoll;
+	int	nfds;
+
+	epoll = _multiplexer.getInstance();
+	while (42) {
+		try {
+			nfds = epoll_wait(epoll, events, 256, 1000);
+			if (nfds == -1)
+				throw std::runtime_error("Failure epoll\n");
+			if (worker(nfds))
+				throw 500;
+		}
+		catch (int error) {
+			if (_sendRes(error))
+				throw ;
+		}
+		catch (...) {
+			throw ;
+		}
+	}
 }

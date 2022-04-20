@@ -1,9 +1,12 @@
 #include "HttpContext.hpp"
+#include "Parser.hpp"
 
 static HttpContext	*webserver;
+static Parser		*parser;
 
 static void	handler(int signum) {
 	ERR_LOG(signum, "Stop server with signal!");
+	delete parser;
 	delete webserver;
 	exit(0);
 }
@@ -56,7 +59,7 @@ static bool	listenning(const Event::Pool& pool, int& instance) {
 	return SUCCESS;
 }
 
-static bool	build_events(Parser* parser, Event::Pool& pool) {
+static bool	build_events(Event::Pool& pool) {
 	Parser::Listenning::const_iterator	it;
 	struct sockaddr_in	addr;
 	int		socket_fd;
@@ -82,25 +85,24 @@ static bool	build_events(Parser* parser, Event::Pool& pool) {
 
 int	main(int ac, char **av) {
 	Event::Pool	events;
-	Parser		*parser;
 	int			epoll;
 
+	signal(SIGINT, handler);
 	try {
-		signal(SIGINT, handler);
-		if (ac > 2) 
-			throw "Usage: ./webserve [config_file]";
+		if (ac > 2)
+			throw std::logic_error("Usage: ./webserve [config_file]");
 		parser = new Parser(ac == 1 ? "ez.conf" : av[1]);
-		if (build_events(parser, events))
-			throw "Failed build events";
+		if (build_events(events))
+			throw std::runtime_error("Failed build events");
 		if (listenning(events, epoll))
-			throw "Failed start listenning on servers";
-		webserver = new HttpContext(parser, events, epoll);
-		if (webserver->loop())
-			throw "Failure during execution";
+			throw std::runtime_error("Failed start listenning on servers");
+		webserver = new HttpContext(events, epoll);
+		webserver->loop();
 	}
-	catch(const char* msg) {
-		std::cerr << msg << std::endl;
-		delete webserver;
+	catch (const std::exception& error) {
+		std::cerr << error.what() << std::endl;
 	}
+	delete parser;
+	delete webserver;
 	return 0;
 }

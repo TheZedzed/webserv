@@ -20,7 +20,7 @@ class	Event {
 		~Event();
 		Event(Pool& events, int fd);
 
-		bool	addEvent(int socket, int flag) const;
+		bool	addEvent(int fd, int flag) const;
 		bool	delEvent(int fd) const;
 		bool	modEvent(int fd) const;
 
@@ -32,7 +32,7 @@ class	Event {
 		Event(const Event&);
 
 		int		_epoll;
-		Pool&	_events; // Contain map of pair(socket, array of server*)
+		Pool&	_events; // Contain map of pair(socket listen, array of server*)
 };
 #endif
 

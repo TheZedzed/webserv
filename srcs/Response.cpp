@@ -1,13 +1,8 @@
 #include "Response.hpp"
 
-static bool	_wrong_method(const String& elem)
-{ return elem != "GET" && elem != "DELETE" && elem != "POST"; }
+Response::Response(const Client& cli, int code) : _client(cli), _code(code)
+{ std::cout << "Create Response" << std::endl; }
 
-static bool	_wrong_version(const String& elem)
-{ return elem != "HTTP/1.1"; }
-
-Response::~Response()
-{ std::cout << "Destroy Response" << std::endl; }
-
-Response::Response()
-{ std::cout << "Create an http response" << std::endl; }
+Response::~Response() {
+	std::cout << "Destroy Response" << std::endl;
+}

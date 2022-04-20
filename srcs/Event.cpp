@@ -37,14 +37,9 @@ bool	Event::modEvent(int fd) const {
 }
 
 bool	Event::delEvent(int fd) const {
-	struct sockaddr_in	client_addr;
 	socklen_t	size;
 	int			res;
 
-	size = sizeof(client_addr);
-	bzero(&client_addr, sizeof(client_addr));
-	getsockname(fd, reinterpret_cast<sockaddr*>(&client_addr), (&size));
-	printf("client:%s on port:%d connexion close!\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
 	res = epoll_ctl(_epoll, EPOLL_CTL_DEL, fd, NULL);
 	if (res == -1)
 		return FAILURE;
@@ -52,14 +47,14 @@ bool	Event::delEvent(int fd) const {
 	return SUCCESS;
 }
 
-bool	Event::addEvent(int socket, int flag) const {
+bool	Event::addEvent(int fd, int flag) const {
 	struct epoll_event	ev;
 	int		res;
 
-	ev.data.fd = socket;
+	ev.data.fd = fd;
 	ev.events = flag;
-	fcntl(socket, F_SETFL, O_NONBLOCK);
-	res = epoll_ctl(_epoll, EPOLL_CTL_ADD, socket, &ev);
+	fcntl(fd, F_SETFL, O_NONBLOCK);
+	res = epoll_ctl(_epoll, EPOLL_CTL_ADD, fd, &ev);
 	if (res == -1)
 		return FAILURE;
 	return SUCCESS;

@@ -3,8 +3,7 @@
 # ifndef HTTPCONTEXT_HPP
 # define HTTPCONTEXT_HPP
 
-# include "Response.hpp"
-# include "Parser.hpp"
+# include "Client.hpp"
 
 /* class HttpContext:
 ** nginx like Http-context
@@ -20,14 +19,17 @@
 */
 class	HttpContext {
 	public:
-		HttpContext(Parser* parser, Event::Pool& events, int& fd);
+		typedef std::map<int, Client*>	Clients;
+
+		HttpContext(Event::Pool& events, int& fd);
 		~HttpContext();
 
-		bool	loop(); // Event loop
+		void	loop(); // Event loop
 		bool	format(); // format HTTP request
-		bool	handleRequest(int socket); // handle request
-		bool	handleResponse(int socket); // handle HTTP response
-		int		newConnection(int socket) const; // handle new connection
+		bool	worker(int nfds); // manage events
+		bool	handleRequest(); // handle received data
+		bool	handleResponse(); // handle HTTP response
+		int		newConnection(); // handle new connection
 
 		const Event&	getMultiplexer() const;
 
@@ -36,10 +38,12 @@ class	HttpContext {
 		HttpContext(const HttpContext&);
 		HttpContext&	operator=(const HttpContext&);
 
-		int			_err_code;
-		Response*	_response;
-		Request*	_request;
-		Parser*		_server_info;
+		bool	_addClient(int fd, const Event::Servers& serv);
+		bool	_modClient(const String& raw);
+		bool	_sendRes(int code);
+		bool	_delClient(void);
+
+		Clients		_clients;
 		const Event	_multiplexer;
 };
 

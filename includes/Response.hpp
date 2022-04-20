@@ -3,7 +3,7 @@
 # ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
-#include "Request.hpp"
+#include "Client.hpp"
 
 /*
 ** class HTTP Response:
@@ -12,7 +12,7 @@
 */
 class	Response {
 	public:
-		Response(const Request& req);
+		Response(const Client& client, int code) : _client(client), _code(code) {}
 		~Response();
 
 	private:
@@ -20,7 +20,8 @@ class	Response {
 		Response(const Response&);
 		Response&	operator=(const Response&);
 
-
+		const int		_code;
+		const Client&	_client;
 };
 
 #endif

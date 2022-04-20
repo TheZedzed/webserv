@@ -1,6 +1,6 @@
 #include "Request.hpp"
 
-static String&	_tolower(String str) {
+static String&	_tolower(String& str) {
 	size_t	i;
 
 	i = 0;
@@ -12,60 +12,83 @@ static String&	_tolower(String str) {
 	return str;
 }
 
-static String&	_itoa(int nb) {
-	String	res;
+static size_t	_atoi(const String& str, int b) {
+	std::istringstream	tmp(str);
+	size_t	res(0);
 
-	do {
-		res.insert(res.begin(), (nb % 10) + '0');
-		nb /= 10;
-	} while (nb);
+	if (b == 16)
+		tmp >> std::hex >> res;
+	else
+		tmp >> std::dec >> res;
 	return res;
 }
 
-static size_t	_toint(const String& str) {
-	const static char*	hex = "0123456789abcdef";
-	String::reverse_iterator	it;
-	String	tmp;
-	size_t	pow;
-	size_t	nb;
+static String	_itoa(int nb) {
+	std::ostringstream	res;
 
-	pow = nb = 0;
-	tmp = _tolower(str);
-	for (it = str.rbegin(); it != str.rend(); ++it) {
-		nb += (hex[*it - '0'] * std::pow(16, pow));
-		++pow;
-	}
-	return nb;
+	res << nb;
+	return res.str();
 }
 
+static bool	_wrong_method(const String& elem)
+{ return elem != "GET" && elem != "DELETE" && elem != "POST"; }
+
+static bool	_wrong_version(const String& elem)
+{ return elem != "HTTP/1.1"; }
+
 Request::Request(const String& raw) {
-	std::cout << "Create an http request" << std::endl;
-	format(raw);
+	size_t	end;
+
+	std::cout << "Reformat an http request" << std::endl;
+	_extractSL(end, raw);
+	_extractHead(end, raw);
+	_extractBody(end, raw);
 }
 
 Request::~Request()
 { std::cout << "Destroy Request" << std::endl; }
 
-void	Request::format(const String& raw) {
+const String&	Request::getBody() const
+{ return _body; }
+
+const Array&	Request::getSL() const
+{ return _start; }
+
+const Request::Fields&	Request::getHeaders() const
+{ return _headers; }
+
+void	Request::_extractBody(size_t& pos, const String& raw) {
+	Fields::const_iterator	it1;
+	Fields::const_iterator	it2;
+
+	it1 = _headers.find("content-length:");
+	it2 = _headers.find("transfert-encoding:");
+	if (it2 != _headers.end()) {
+		if (it2->second != "chunked")
+			throw 501;
+		_extractChunk(pos, raw);
+	}
+	else if (it1 != _headers.end())
+		_body = raw.substr(pos);
+	else
+		throw 411;
+}
+
+void	Request::_extractSL(size_t& pos, const String& raw) {
 	std::stringstream	tmp;
 	String	elem;
-	size_t	end;
 
-	end = raw.find("\r\n");
-	if (end != std::string::npos) {
-		tmp.str(raw.substr(0, end));
+	pos = raw.find("\r\n");
+	if (pos != std::string::npos) {
+		tmp.str(raw.substr(0, pos));
 		while (tmp >> elem)
 			_start.push_back(elem);
-		end += 2; // skip SL "\r\n"
-		_extractHead(end, raw);
-		end == std::string::npos ? 0 : end += 2; // skip empty line after headers
-		if (_headers.find("content-length:") != _headers.end())
-			_body = raw.substr(end);
-		else if (_headers.find("transfert-encoding:") != _headers.end()) {
-			if (_headers.find("transfert-encoding:")->second == "chunked")
-				_extractChunk(end, raw);
-		}
+		pos += 2;
 	}
+	if (_start.size() != 3 || _wrong_method(_start[0]))
+		throw 400;
+	if (_wrong_version(_start[2]))
+		throw 505;
 }
 
 void	Request::_extractHead(size_t& pos, const String& raw) {
@@ -75,19 +98,16 @@ void	Request::_extractHead(size_t& pos, const String& raw) {
 	size_t	found1;
 	size_t	found2;
 
-	while (1) {
-		found1 = raw.find("\r\n", pos);
-		if (found1 != std::string::npos && found1 != pos) { // not empty line or EOF
+	while ((found1 = raw.find("\r\n", pos)) != std::string::npos) {
+		if (found1 != pos) {
 			line = raw.substr(pos, found1);
 			found2 = line.find(":");
-			if (found2 != std::string::npos) {
-				key = line.substr(0, found2);
-				value = line.substr(found2 + 1, found1);
-				_headers.insert(std::make_pair(_tolower(key), value));
-			}
+			if (found2 == std::string::npos)
+				throw 400;
+			key = line.substr(0, found2);
+			value = line.substr(found2 + 1, found1);
+			_headers.insert(std::make_pair(_tolower(key), value));
 		}
-		else
-			break ;
 		pos = found1 + 2;
 	}
 }
@@ -102,7 +122,7 @@ void	Request::_extractChunk(size_t& pos, const String& raw) {
 	while (pos != std::string::npos) {
 		found = raw.find("\r\n", pos);
 		if (!(i % 2) && found != std::string::npos) {
-			if (!(chunk_size = _toint(raw.substr(pos, found - pos))))
+			if (!(chunk_size = _atoi(raw.substr(pos, found - pos), 16)))
 				break ;
 			length += chunk_size;
 			pos = found + 2;

@@ -30,6 +30,7 @@
 #define DEBUG 0
 #define SUCCESS 0
 #define FAILURE 1
+#define CRLF "\r\n"
 
 typedef std::string				String;
 typedef std::ifstream			Stream;

@@ -1,7 +1,5 @@
 #include "Parser.hpp"
 
-static const char	*g_ret[] = {"300", "301", "302", "306", NULL};
-
 bool	Parser::allow_directive(int flag) {
 	if (!flag) {
 		if (_line.size() == 1 || *_line.rbegin() != ";")
@@ -29,9 +27,7 @@ bool	Parser::return_directive(int flag) {
 		i = 0;
 		if (_line.size() != 4 || *_line.rbegin() != ";")
 			return FAILURE;
-		while (_line[1] != String(g_ret[i]))
-			++i;
-		if (!g_ret[i])
+		if (_line[1] != "301")
 			return FAILURE;
 	}
 	else
@@ -85,7 +81,7 @@ bool	Parser::location_directive(int flag) {
 		_curr_loc = new Location();
 	}
 	while (std::getline(_in, _buffer)) {
-		if (empty_line())
+		if (_empty_line())
 			continue ;
 		if (_line[0] == "}" && _line.size() == 1)
 			break ;

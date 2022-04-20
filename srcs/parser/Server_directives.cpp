@@ -1,8 +1,5 @@
 #include "Parser.hpp"
 
-static const char	*g_ser[] = {"400", "403", "404", "405", "408", "414", NULL};
-static const char	*g_cli[] = {"500", "505", NULL};
-
 bool	Parser::wrong_sdirective(int flag) {
 	if (_line[0] == "listen")
 		return listen_directive(flag);
@@ -76,21 +73,17 @@ bool	Parser::listen_directive(int flag) {
 }
 
 bool	Parser::errPage_directive(int flag) {
+	const char*	err[] = {"400", "403", "404", "405", "500", "501", "505", NULL};
 	int	i;
 
 	if (!flag) {
 		i = 0;
 		if (_line.size() != 4 || *_line.rbegin() != ";")
 			return FAILURE;
-		while (g_cli[i] && _line[1] != String(g_cli[i]))
+		while (err[i] && _line[1] != String(err[i]))
 			++i;
-		if (!g_cli[i]) {
-			i = 0;
-			while (g_ser[i]&& _line[1] != String(g_ser[i]))
-				++i;
-			if (!g_ser[i])
-				return FAILURE;
-		}
+		if (!err[i])
+			return FAILURE;
 	}
 	else
 		_curr_conf->setErrorPage(_line);

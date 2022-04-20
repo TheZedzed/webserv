@@ -3,9 +3,7 @@
 # ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include "Base.hpp"
-
-# include <cmath>
+# include "Event.hpp"
 
 /*
 ** class HTTP Request:
@@ -22,14 +20,18 @@ class	Request {
 		~Request();
 		Request(const String& raw);
 
-		void	format(const String& raw);
+		const String&	getBody() const;
+		const Array&	getSL() const;
+		const Fields&	getHeaders() const;
 
 	private:
 		Request();
 		Request(const Request&);
 		Request&	operator=(const Request&);
 
+		void	_extractSL(size_t& pos, const String& raw);
 		void	_extractHead(size_t& pos, const String& raw);
+		void	_extractBody(size_t& pos, const String& raw);
 		void	_extractChunk(size_t& pos, const String& raw);
 
 		String	_body;
