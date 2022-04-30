@@ -12,32 +12,32 @@
 */
 class	Location {
 	public:
-		typedef std::pair<int, String>	Redirect;
+		typedef std::pair<int, str_t>	redir_t;
 
 		Location();
 		~Location();
 
-		void	setRoot(const String& root);
-		void	setAutoIndex(const String& autoindex);
-		void	setRedirection(const Array& line);
-		void	setMethod(const Array& line);
-		void	setCgi(const String& line);
+		void	setRoot(const str_t& root);
+		void	setAutoIndex(const str_t& autoindex);
+		void	setRedirection(const strs_t& line);
+		void	setMethod(const strs_t& line);
+		void	setCgi(const str_t& line);
 
-		const String&		getRoot() const;
-		const Redirect&		getRedir() const;
 		bool				getAuto() const;
-		const Array&		getAllow() const;
-		const String&		getCgi() const;
+		const str_t&		getCgi() const;
+		const str_t&		getRoot() const;
+		const redir_t&		getRedir() const;
+		const strs_t&	getAllow() const;
 
 	private:
 		Location(const Location&);
 		Location&	operator=(const Location&);
 
-		Array		_allowed; //Sets allowed methods
-		Redirect	_redir; // redirection
-		bool		_auto; // autoindex
-		String		_root; // root
-		String		_cgi; // cgi
+		strs_t	_allow; // allowed methods
+		redir_t	_redir; // redirection
+		bool	_auto; // autoindex
+		str_t	_root; // root
+		str_t	_cgi; // cgi
 };
 
 std::ostream&	operator<<(std::ostream& out, const Location& loc);

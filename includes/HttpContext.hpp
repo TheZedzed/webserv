@@ -3,7 +3,7 @@
 # ifndef HTTPCONTEXT_HPP
 # define HTTPCONTEXT_HPP
 
-# include "Client.hpp"
+# include "Multiplexer.hpp"
 
 /* class HttpContext:
 ** nginx like Http-context
@@ -19,32 +19,28 @@
 */
 class	HttpContext {
 	public:
-		typedef std::map<int, Client*>	Clients;
+		typedef Multiplexer::events_t	events_t;
 
-		HttpContext(Event::Pool& events, int& fd);
-		~HttpContext();
+		HttpContext(events_t& events, int& fd);
+		~HttpContext() {}
 
 		void	loop(); // Event loop
-		bool	format(); // format HTTP request
 		bool	worker(int nfds); // manage events
 		bool	handleRequest(); // handle received data
-		bool	handleResponse(); // handle HTTP response
 		int		newConnection(); // handle new connection
 
-		const Event&	getMultiplexer() const;
+		const Multiplexer&	getMultiplexer() const;
 
 	private:
 		HttpContext();
 		HttpContext(const HttpContext&);
 		HttpContext&	operator=(const HttpContext&);
 
-		bool	_addClient(int fd, const Event::Servers& serv);
-		bool	_modClient(const String& raw);
-		bool	_sendRes(int code);
-		bool	_delClient(void);
-
-		Clients		_clients;
-		const Event	_multiplexer;
+		bool	_addClient(int fd, const Client::servers_t& serv);
+		bool	_modClient();
+		bool	_delClient();
+		
+		Multiplexer	_multiplexer;
 };
 
 #endif

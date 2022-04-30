@@ -3,7 +3,7 @@
 # ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include "Event.hpp"
+# include "Base.hpp"
 
 /*
 ** class HTTP Request:
@@ -15,27 +15,27 @@
 */
 class	Request {
 	public:
-		typedef std::map<String, String>	Fields;
+		typedef std::map<str_t, str_t>	Fields;
 
 		~Request();
-		Request(const String& raw);
+		Request();
 
-		const String&	getBody() const;
-		const Array&	getSL() const;
+		const str_t&	getBody() const;
+		const strs_t&	getSL() const;
 		const Fields&	getHeaders() const;
 
+		void	extractSL(const str_t& raw);
+		void	extractBody(const str_t& raw);
+		void	extractHeaders(const str_t& raw);
+
 	private:
-		Request();
 		Request(const Request&);
 		Request&	operator=(const Request&);
 
-		void	_extractSL(size_t& pos, const String& raw);
-		void	_extractHead(size_t& pos, const String& raw);
-		void	_extractBody(size_t& pos, const String& raw);
-		void	_extractChunk(size_t& pos, const String& raw);
+		void	_extractChunk(const str_t& raw);
 
-		String	_body;
-		Array	_start;
+		str_t	_body;
+		strs_t	_start;
 		Fields	_headers;
 };
 

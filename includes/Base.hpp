@@ -26,14 +26,20 @@
 # include <vector>
 # include <algorithm>
 
-#define ERR_LOG(code, msg) std::cerr << "Error code: " << code << ", " << msg << std::endl;
 #define DEBUG 0
 #define SUCCESS 0
 #define FAILURE 1
 #define CRLF "\r\n"
+#define SERVER "webserv"
 
-typedef std::string				String;
-typedef std::ifstream			Stream;
-typedef std::vector<String>		Array;
+#define CONF_ERR "Wrong config file!"
+
+#define CLIENT 2
+#define LISTENNER 3
+
+typedef std::string					str_t;
+typedef std::vector<str_t>			strs_t;
+typedef std::pair<str_t, str_t>		socket_t;
+typedef std::vector<socket_t>		sockets_t;
 
 #endif

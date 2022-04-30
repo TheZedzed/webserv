@@ -1,102 +1,99 @@
 #include "Parser.hpp"
 
-Parser::Parser(const char* file) : _error(0) {
-	this->open_file(file);
-	this->loop(0);
-	if (_error)
-		throw "Wrong config file!";
-	this->open_file(file);
-	this->loop(1);
-}
+Parser::Parser(const char* file) {
+	std::ifstream	infile;
 
-Parser::~Parser()
-{}
-
-const Parser::Listenning&	Parser::getMap() const
-{ return _map; }
-
-int		Parser::getError() const
-{ return _error; }
-
-void	Parser::open_file(const char* file) {
-	_in.open(file);
-	if (!_in.is_open())
-		_error = 1;
-}
-
-/* split read buffer in strings then check for empty line */
-bool	Parser::_empty_line() {
-	std::stringstream	tmp(_buffer);
-	String	elem;
-
-	_line.clear();
-	while (tmp >> elem) {
-#if DEBUG
-		printf("[%s] ", elem.c_str());
-#endif
-		_line.push_back(elem);
+	try {
+		infile.open(file);
+		loop(infile, 0);
+		infile.close();
+		infile.open(file);
+		loop(infile, 1);
+		infile.close();
 	}
-#if DEBUG
-	printf("\n");
-#endif
-	if (_line.size() == 0)
-		return 1;
-	return 0;
+	catch (...) {
+		std::cerr << CONF_ERR << std::endl;
+		if (infile.is_open())
+			infile.close();
+		throw ;
+	}
+}
+
+const Parser::listenners_t&	Parser::getMap() const
+{ return _dumb_map; }
+
+/* remove useless sockets */
+void	Parser::_smart_map() {
+
 }
 
 void	Parser::_fill_map(int flag) {
-	Config::Sockets::const_iterator	it;
-	static Event::Servers			servers;
-	Listenning::iterator			res;
-	Config::Sockets					curr = _curr_conf->getSockets();
+	sockets_t::const_iterator	it;
+	listenners_t::iterator		res;
+	servers_t		servers;
 
-	if (flag && !_error) {
-		if (curr.empty())
-			_curr_conf->setSocket(std::make_pair("127.0.0.1", "80"));
-		std::sort(curr.begin(), curr.end());
-		_curr_serv = new Server(_curr_conf);
-		for (it = curr.begin(); it != curr.end(); ++it) {
-			res = _map.find(*it);
-			if (res != _map.end())
+	if (flag) {
+		_curr_serv->sanitize_sockets();
+		it = _curr_serv->getSockets().begin();
+		for (; it != _curr_serv->getSockets().end(); ++it) {
+			res = _dumb_map.find(*it);
+			if (res != _dumb_map.end()) // socket found
 				res->second.push_back(_curr_serv);
 			else {
-				res = _map.find(std::make_pair("0.0.0.0", (*it).second));
-				if (res != _map.end())
+				res = _dumb_map.find(std::make_pair("0.0.0.0", (*it).second));
+				if (res != _dumb_map.end()) // socket listenning on * address found
 					res->second.push_back(_curr_serv);
-				else {
+				else { // new socket
 					servers.clear();
 					servers.push_back(_curr_serv);
-					_map.insert(std::make_pair(*it, servers));
+					_dumb_map.insert(std::make_pair(*it, servers));
 				}
 			}	
 		}
 	}
-	_tmp.clear();
+	_dumb_tmp.clear();
 }
 
-void	Parser::loop(int flag) {
-	while (!_error && std::getline(_in, _buffer)) {
-		if (_empty_line())
-			continue ;
-		else if (_line[0] == "}" && _line.size() != 1)
-			_error = 3;
-		else if (_line[0] == "server" && _line.size() == 2 && _line[1] == "{") {
-			if (flag)
-				_curr_conf = new Config();
-			while (!_error && std::getline(_in, _buffer)) {
-				if (_empty_line())
-					continue ;
-				else if (_line[0] == "}" && _line.size() == 1)
-					break ;
-				else if (_line[0] == "}" && _line.size() != 1)
-					_error = 3;
-				else if (wrong_sdirective(flag))
-					_error = 4;
-			}
-			_fill_map(flag);
-		}
-		else
-			_error = 2;
+bool	Parser::_end_of_block()
+{ return (_line.size() == 1 && _line[0] == "}"); }
+
+bool	Parser::_server_block()
+{ return (_line.size() == 2 && _line[0] == "server" &&  _line[1] == "{"); }
+
+bool	Parser::_getline(stream_t& in, str_t& buffer) {
+	std::stringstream	tmp;
+	str_t	elem;
+
+	_line.clear();
+	if (std::getline(in, buffer)) { // split line
+		tmp.str(buffer);
+		while (tmp >> elem)
+			_line.push_back(elem);
+		if (_line.size() == 0 || _end_of_block()) // empty line or "}"
+			return _getline(in, buffer);
 	}
-	_in.close();
+	return false;
+}
+
+void	Parser::loop(stream_t& in, bool flag) {
+	str_t	buffer;
+
+	if (!in.is_open())
+		throw CONF_ERR;
+	while (_getline(in, buffer)) {
+		if (_server_block()) {
+			if (flag)
+				_curr_serv = new Server();
+			while (_getline(in, buffer)) {
+				if (server_directive(in, flag) == FAILURE)
+					throw CONF_ERR;
+			}
+			if (_curr_serv->getSockets().empty())
+				throw CONF_ERR;
+			_fill_map(flag);
+			continue ;
+		}
+		throw CONF_ERR;
+	}
+	_smart_map();
 }

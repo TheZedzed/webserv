@@ -5,43 +5,13 @@ static HttpContext	*webserver;
 static Parser		*parser;
 
 static void	handler(int signum) {
-	ERR_LOG(signum, "Stop server with signal!");
 	delete parser;
 	delete webserver;
 	exit(0);
 }
 
-#if DEBUG
-void	print_map(const Parser::Listenning& map) {
-	Parser::Listenning::const_iterator	it;
-	Event::Servers::const_iterator	it1;
-
-	it = map.begin();
-	for (; it != map.end(); ++it) {
-		it1 = it->second.begin();
-		std::cout << "Socket: " << it->first.first << ":" << it->first.second << "\n";
-		for (; it1 != it->second.end(); ++it1) {
-			std::cout << *it1;
-		}
-	}
-}
-
-void	print_map2(const Event::Pool& map) {
-	Event::Pool::const_iterator		it;
-	Event::Servers::const_iterator	it1;
-
-	std::cout << "[GOD]\n\n";
-	it = map.begin();
-	for (; it != map.end(); ++it) {
-		it1 = it->second.begin();
-		for (; it1 != it->second.end(); ++it1)
-			std::cout << "\n" << *((*it1)->getConfig());
-	}
-}
-#endif
-
-static bool	listenning(const Event::Pool& pool, int& instance) {
-	Event::Pool::const_iterator	it;
+static bool	listenning(const HttpContext::events_t& pool, int& instance) {
+	HttpContext::events_t::const_iterator	it;
 	struct epoll_event	ev;
 	int	res;
 
@@ -49,8 +19,7 @@ static bool	listenning(const Event::Pool& pool, int& instance) {
 	if (instance == -1) 
 		return FAILURE;
 	for (it = pool.begin(); it != pool.end(); ++it) {
-		fcntl(it->first, F_SETFL, O_NONBLOCK);
-		ev.data.fd = it->first;
+		ev.data.ptr = it->second;
 		ev.events = EPOLLIN;
 		res = epoll_ctl(instance, EPOLL_CTL_ADD, it->first, &ev);
 		if (res == -1)
@@ -59,18 +28,19 @@ static bool	listenning(const Event::Pool& pool, int& instance) {
 	return SUCCESS;
 }
 
-static bool	build_events(Event::Pool& pool) {
-	Parser::Listenning::const_iterator	it;
-	struct sockaddr_in	addr;
+static bool	build_events(HttpContext::events_t& pool) {
+	Parser::listenners_t::const_iterator	it;
+	Connection*	listenner;
+	sockaddr_in	addr;
 	int		socket_fd;
-	int		res;
+	int		opt;
 
-	res = 1;
+	opt = 1;
 	it = parser->getMap().begin();
 	for (; it != parser->getMap().end(); ++it) {
 		bzero(&addr, sizeof(addr));
-		socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-		setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &res, sizeof(res));
+		socket_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+		setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 		addr.sin_family = AF_INET; // ipv4
 		addr.sin_addr.s_addr = htonl(inet_addr(it->first.first.c_str()));
 		addr.sin_port =  htons(std::atoi(it->first.second.c_str()));
@@ -78,13 +48,15 @@ static bool	build_events(Event::Pool& pool) {
 			return FAILURE;
 		if (listen(socket_fd, 100)) // up to 100 connections
 			return FAILURE;
-		pool.insert(std::make_pair(socket_fd, it->second));
+		listenner = new Connection(socket_fd, LISTENNER);
+		listenner->setData(it->second);
+		pool.insert(std::make_pair(socket_fd, listenner));
 	}
 	return SUCCESS;
 }
 
 int	main(int ac, char **av) {
-	Event::Pool	events;
+	HttpContext::events_t	events;
 	int			epoll;
 
 	signal(SIGINT, handler);

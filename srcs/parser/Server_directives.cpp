@@ -1,6 +1,6 @@
 #include "Parser.hpp"
 
-bool	Parser::wrong_sdirective(int flag) {
+bool	Parser::server_directive(stream_t& in, int flag) {
 	if (_line[0] == "listen")
 		return listen_directive(flag);
 	else if (_line[0] == "error_page")
@@ -10,7 +10,7 @@ bool	Parser::wrong_sdirective(int flag) {
 	else if (_line[0] == "server_name")
 		return names_directive(flag);
 	else if (_line[0] == "location")
-		return location_directive(flag);
+		return location_directive(in, flag);
 	return FAILURE;
 }
 
@@ -20,7 +20,7 @@ bool	Parser::names_directive(int flag) {
 			return FAILURE;
 	}
 	else
-		_curr_conf->setNames(_line);
+		_curr_serv->setNames(_line);
 	return SUCCESS;
 }
 
@@ -33,42 +33,51 @@ bool	Parser::clienSize_directive(int flag) {
 	if (!flag && (*end || _line[1].size() > 4))
 		return FAILURE;
 	if (flag)
-		_curr_conf->setMax(_line[1]);
+		_curr_serv->setMax(_line[1]);
 	return SUCCESS;
 }
 
-/* tuple host:port mandatory */
-bool	Parser::listen_directive(int flag) {
-	Config::Sockets::const_iterator	it;
-	String	port;
-	String	host;
+socket_t	Parser::_lil_dns(void) {
+	str_t	host;
+	str_t	port;
 	size_t	pos;
-	char*	end;
 
-	if (!flag && (_line.size() != 3 || *_line.rbegin() != ";"))
-		return FAILURE;
 	pos = _line[1].find(':');
 	if (pos == std::string::npos)
-		return FAILURE;
+		return std::make_pair("", "");
 	host = _line[1].substr(0, pos);
 	port = _line[1].substr(pos + 1);
 	if (host == "localhost")
 		host = "127.0.0.1";
 	else if (host == "*")
 		host = "0.0.0.0";
-	std::strtol(port.c_str(), &end, 10);
+	return std::make_pair(host, port);
+}
+
+/* tuple host:port mandatory */
+bool	Parser::listen_directive(int flag) {
+	sockets_t::iterator	ite;
+	sockets_t::iterator	it;
+	socket_t	val;
+	char*	end;
+
+	if (!flag && (_line.size() != 3 || *_line.rbegin() != ";"))
+		return FAILURE;
+	val = _lil_dns();
+	if (!flag && val.first == "")
+		return FAILURE;
 	if (!flag) {
-		it = _tmp.begin();
-		if (port.size() > 5 || *end)
+		it = _dumb_tmp.begin();
+		ite = _dumb_tmp.end();
+		std::strtol(val.second.c_str(), &end, 10);
+		if (val.second.size() > 4 || *end)
 			return FAILURE;
-		for (; it != _tmp.end(); ++it) {
-			if (it->first == host && it->second == port)
-				return FAILURE;
-		}
-		_tmp.push_back(std::make_pair(host, port));
+		else if (std::find(it, ite, val) != ite)
+			return FAILURE;
+		_dumb_tmp.push_back(val);
 	}
 	else
-		(_curr_conf)->setSocket(std::make_pair(host, port));
+		(_curr_serv)->setSocket(val);
 	return SUCCESS;
 }
 
@@ -80,12 +89,12 @@ bool	Parser::errPage_directive(int flag) {
 		i = 0;
 		if (_line.size() != 4 || *_line.rbegin() != ";")
 			return FAILURE;
-		while (err[i] && _line[1] != String(err[i]))
+		while (err[i] && _line[1] != str_t(err[i]))
 			++i;
 		if (!err[i])
 			return FAILURE;
 	}
 	else
-		_curr_conf->setErrorPage(_line);
+		_curr_serv->setErrorPage(_line);
 	return SUCCESS;
 }

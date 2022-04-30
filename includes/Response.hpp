@@ -12,7 +12,7 @@
 */
 class	Response {
 	public:
-		Response(const Client& client, int code) : _client(client), _code(code) {}
+		Response(const Client& client, int code);
 		~Response();
 
 	private:
@@ -20,6 +20,7 @@ class	Response {
 		Response(const Response&);
 		Response&	operator=(const Response&);
 
+		int		_data;
 		const int		_code;
 		const Client&	_client;
 };

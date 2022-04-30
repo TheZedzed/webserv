@@ -3,7 +3,8 @@
 # ifndef PARSER_HPP
 # define PARSER_HPP
 
-# include "Event.hpp"
+# include "Server.hpp"
+
 /*
 ** class Parser:
 ** parse httpcontext config file (*.conf)
@@ -11,24 +12,25 @@
 */
 class	Parser {
 	public:
-		typedef std::map<Config::Socket, Event::Servers>	Listenning;
+		typedef std::ifstream					stream_t;
+		typedef std::vector<Server*>			servers_t;
+		typedef std::map<socket_t, servers_t>	listenners_t;
 
 		Parser(const char* file);
-		~Parser();
+		~Parser() {}
 
-		int					getError() const;
-		const Listenning&	getMap() const;
+		const listenners_t&	getMap() const;
 
-		void	loop(int flag);
+		void	loop(stream_t& in, bool flag);
 		void	open_file(const char* file);
-		bool	location_directive(int flag);
+		bool	server_directive(stream_t& in, int flag);
+		bool	location_directive(stream_t& in, int flag);
 		bool	wrong_ldirective(int flag);
 		bool	allow_directive(int flag);
 		bool	cgi_directive(int flag);
 		bool	root_directive(int flag);
 		bool	return_directive(int flag);
 		bool	autoIndex_directive(int flag);
-		bool	wrong_sdirective(int flag);
 		bool	listen_directive(int flag);
 		bool	names_directive(int flag);
 		bool	errPage_directive(int flag);
@@ -39,18 +41,18 @@ class	Parser {
 		Parser(const Parser&);
 		Parser&	operator=(const Parser&);
 
-		bool	_empty_line(void);
-		void	_fill_map(int flag);
+		bool		_getline(stream_t& in, str_t& buffer);
+		void		_fill_map(int flag);
+		bool		_server_block();
+		bool		_end_of_block();
+		void		_smart_map();
+		socket_t	_lil_dns();
 
-		int				_error;
 		Server*			_curr_serv;
-		Config*			_curr_conf;
 		Location*		_curr_loc;
-		Listenning		_map; // map sockets + servers
-		Stream			_in; // filestream
-		String			_buffer;
-		Array			_line;
-		Config::Sockets	_tmp; // save curr_conf sockets
+		listenners_t	_dumb_map;
+		sockets_t		_dumb_tmp; // for checking duplicate sockets
+		strs_t			_line;
 };
 
 #endif
