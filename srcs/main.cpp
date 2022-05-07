@@ -48,8 +48,7 @@ static bool	build_events(HttpContext::events_t& pool) {
 			return FAILURE;
 		if (listen(socket_fd, 100)) // up to 100 connections
 			return FAILURE;
-		listenner = new Connection(socket_fd, LISTENNER);
-		listenner->setData(it->second);
+		listenner = new Connection(socket_fd, LISTENNER, it->second);
 		pool.insert(std::make_pair(socket_fd, listenner));
 	}
 	return SUCCESS;
@@ -69,7 +68,7 @@ int	main(int ac, char **av) {
 		if (listenning(events, epoll))
 			throw std::runtime_error("Failed start listenning on servers");
 		webserver = new HttpContext(events, epoll);
-		webserver->loop();
+		webserver->worker();
 	}
 	catch (const std::exception& error) {
 		std::cerr << error.what() << std::endl;

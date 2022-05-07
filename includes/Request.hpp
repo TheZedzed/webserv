@@ -11,32 +11,34 @@
 ** extract request line in a vector of string
 ** extract header fields in a map
 ** extract body in a string
-** decode chunked message
 */
 class	Request {
 	public:
-		typedef std::map<str_t, str_t>	Fields;
+		typedef std::map<str_t, str_t>	fields_t;
 
 		~Request();
 		Request();
 
-		const str_t&	getBody() const;
-		const strs_t&	getSL() const;
-		const Fields&	getHeaders() const;
+		bool	get_chunked() const;
+		const str_t&	get_body() const;
+		const strs_t&	get_rl() const;
+		const fields_t&	get_headers() const;
 
-		void	extractSL(const str_t& raw);
-		void	extractBody(const str_t& raw);
-		void	extractHeaders(const str_t& raw);
+		void	delete_header(str_t& key);
+		void	extract_rl(const strs_t& raw);
+		void	extract_body(const str_t& raw);
+		void	extract_header(str_t& key, str_t& value);
+
+		void	set_chunked(bool type);
 
 	private:
 		Request(const Request&);
 		Request&	operator=(const Request&);
 
-		void	_extractChunk(const str_t& raw);
-
 		str_t	_body;
 		strs_t	_start;
-		Fields	_headers;
+		bool	_chunked;
+		fields_t	_headers;
 };
 
 #endif

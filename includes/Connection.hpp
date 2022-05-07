@@ -9,18 +9,23 @@ class	Connection {
 	public:
 		typedef Client::servers_t	servers_t;
 
-		Connection(int fd, int type);
+		Connection(int fd, int type, Client* client);
+		Connection(int fd, int type, const servers_t servers);
 		~Connection();
 
-		Client*				getClient();
+		Client*	getClient();
+
 		int					getFd() const;
 		bool				getType() const;
 		const servers_t&	getServers() const;
 
-		void	setData(const servers_t& servers);
-		void	setData(Client* client);
+		str_t	data_received;
 
 	private:
+		Connection();
+		Connection(const Connection&);
+		Connection&	operator=(const Connection&);
+
 		union	data_u {
 			servers_t	_servers;
 			Client*		_client;

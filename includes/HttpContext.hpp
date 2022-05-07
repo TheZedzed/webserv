@@ -24,10 +24,11 @@ class	HttpContext {
 		HttpContext(events_t& events, int& fd);
 		~HttpContext() {}
 
-		void	loop(); // Event loop
-		bool	worker(int nfds); // manage events
-		bool	handleRequest(); // handle received data
-		int		newConnection(); // handle new connection
+		void	worker(); // events loop
+		void	manage_event(int id); // manage event
+		bool	new_connection(); // manage new connection
+		bool	handle_request(); // manage received data
+		bool	handle_response(); // send data
 
 		const Multiplexer&	getMultiplexer() const;
 
@@ -36,9 +37,9 @@ class	HttpContext {
 		HttpContext(const HttpContext&);
 		HttpContext&	operator=(const HttpContext&);
 
-		bool	_addClient(int fd, const Client::servers_t& serv);
-		bool	_modClient();
-		bool	_delClient();
+		bool	_add_client(int socket);
+		bool	_mod_client(int code);
+		bool	_del_client();
 		
 		Multiplexer	_multiplexer;
 };

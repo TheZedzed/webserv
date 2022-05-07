@@ -24,7 +24,24 @@ const Parser::listenners_t&	Parser::getMap() const
 
 /* remove useless sockets */
 void	Parser::_smart_map() {
+	listenners_t::iterator	it;
+	listenners_t::iterator	it1;
+	str_t port;
 
+	it = _dumb_map.begin();
+	for (; it != _dumb_map.end(); ++it) {
+		if (it->first.first == "0.0.0.0") {
+			port = it->first.second;
+			it1 = it;
+			++it1;
+			for (; it1 != _dumb_map.end(); ++it1) {
+				if (it1->first.second == port)
+					_dumb_map.erase(it1);
+			}
+		}
+		else
+			break ;
+	}
 }
 
 void	Parser::_fill_map(int flag) {

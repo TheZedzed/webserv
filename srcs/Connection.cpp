@@ -1,7 +1,10 @@
 #include "Connection.hpp"
 
-Connection::Connection(int fd, int type) : _fd(fd), _type(type)
-{}
+Connection::Connection(int fd, int type, Client* client) : _fd(fd), _type(type)
+{ _data._client = client; }
+
+Connection::Connection(int fd, int type, const servers_t servers) : _fd(fd), _type(type)
+{ _data._servers = servers; }
 
 Connection::~Connection() {
 	servers_t::iterator	it;
@@ -16,9 +19,6 @@ Connection::~Connection() {
 	}
 }
 
-Client*	Connection::getClient()
-{ return _data._client; }
-
 int	Connection::getFd() const
 { return _fd; }
 
@@ -28,8 +28,5 @@ bool	Connection::getType() const
 const Connection::servers_t&	Connection::getServers() const
 { return _data._servers; }
 
-void	Connection::setData(const servers_t& servers)
-{ _data._servers = servers; }
-
-void	Connection::setData(Client* client)
-{ _data._client = client; }
+Client*	Connection::getClient()
+{ return _data._client; }

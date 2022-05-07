@@ -17,6 +17,7 @@
 # include <signal.h>
 # include <fstream>
 # include <sstream>
+# include <errno.h>
 
 # include <iostream>
 # include <cstring>
@@ -29,13 +30,17 @@
 #define DEBUG 0
 #define SUCCESS 0
 #define FAILURE 1
-#define CRLF "\r\n"
-#define SERVER "webserv"
 
-#define CONF_ERR "Wrong config file!"
+# define LF (u_char)'\n'
+# define CR (u_char)'\r'
+# define CRLF "\r\n"
 
-#define CLIENT 2
-#define LISTENNER 3
+# define SERVER "webserv"
+
+# define CONF_ERR "Wrong config file!"
+
+# define CLIENT 2
+# define LISTENNER 3
 
 typedef std::string					str_t;
 typedef std::vector<str_t>			strs_t;
