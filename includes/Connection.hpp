@@ -19,7 +19,8 @@ class	Connection {
 		bool				getType() const;
 		const servers_t&	getServers() const;
 
-		void	send(const str_t& client_data); // write client data on socket _fd
+		bool	send_and_close();
+		int		retrieve_request();
 
 	private:
 		Connection();
@@ -29,7 +30,7 @@ class	Connection {
 		union	data_u {
 			servers_t	_servers;
 			Client*		_client;
-			~data_u() {} // must be declared
+			~data_u() {}
 			data_u() {}
 		};
 

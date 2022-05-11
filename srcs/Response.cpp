@@ -45,7 +45,7 @@ void	Response::_set_header(str_t& buffer, const str_t& redir) const { // search 
 	data += time + CRLF; // to do
 	data += "Content-Type: text/html" CRLF; // mimes_type
 	data += "Content-Length: " + _itoa(buffer.size()) + CRLF;
-	data += "Location: " + redir + CRLF;
+	data += "Location: " + redir + CRLF; // reformat redir
 	data += "Connection: Keep-alive" CRLF;
 	data += buffer;
 	buffer = data;

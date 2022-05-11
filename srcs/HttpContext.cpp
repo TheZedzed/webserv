@@ -66,48 +66,27 @@ bool	HttpContext::new_connection() {
 ** handle peer request (EPOLLIN)
 ** send a response to the peer (EPOLLOUT)
 */
-void	HttpContext::manage_event(int id) {
-	Client*	client;
-	char	buf[256];
-	int		state;
-	int		rlen;
-
-	client = peer->getClient();
-	if (events[id].events & EPOLLIN) {
-		state = client->get_state();
-		while ((rlen = recv(peer->getFd(), buf, 255, 0)) > 0) {
-			buf[rlen] = 0;
-			client->process_req(buf);
-		}
-		if (rlen == 0)
-			_del_client();
-		else if (state & RESPONSE || state & ERROR)
-			_mod_client();
-	}
-	if (events[id].events & EPOLLOUT) {
-		client->process_res();
-		peer->send(client->raw_data);
-		if (client->raw_data.find("Connection : close"))
-			_del_client();
-	}
-}
-
 void	HttpContext::worker(void) {
-	int	epoll;
+	int	epoll = _multiplexer.getInstance();
+	int	state;
 	int	nfds;
 
-	epoll = _multiplexer.getInstance();
 	while (1) {
 		if ((nfds = epoll_wait(epoll, events, 256, 1000)) < 0)
 			throw std::runtime_error("Failure epoll_wait\n");
 		for (int i = 0; i < nfds; ++i) {
-			try {
-				peer = reinterpret_cast<Connection*>(events[i].data.ptr);
-				if (new_connection() == true)
-					continue ;
-				manage_event(i);
-			} catch (...) {
-				throw ;
+			peer = reinterpret_cast<Connection*>(events[i].data.ptr);
+			if (new_connection() == true)
+				continue ;
+			if (events[i].events & EPOLLIN) {
+				if ((state = peer->retrieve_request()) == DECONNECT)
+					_del_client();
+				else if (state & RESPONSE || state & ERROR)
+					_mod_client();
+			}
+			if (events[i].events & EPOLLOUT) {
+				if (peer->send_and_close() == true)
+					_del_client();
 			}
 		}
 	}

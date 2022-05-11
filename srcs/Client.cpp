@@ -18,6 +18,9 @@ Response*	Client::get_response()
 int	Client::get_state() const
 { return _state; }
 
+void	Client::set_state(int state)
+{ _state = state; }
+
 const Server*	Client::search_requested_domain() const {
 	servers_t::const_iterator	it1;
 	strs_t::const_iterator		it2;

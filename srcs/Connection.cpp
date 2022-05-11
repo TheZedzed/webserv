@@ -31,6 +31,29 @@ const Connection::servers_t&	Connection::getServers() const
 Client*	Connection::getClient()
 { return _data._client; }
 
-void	Connection::send(const str_t& data) {
-	
+bool	Connection::send_and_close() {
+	Client*	client;
+	size_t	found;
+
+	client = _data._client;
+	client->process_res();
+	found = client->raw_data.find("Connection : close");
+	if (found != std::string::npos)
+		return true;
+	return false;
+}
+
+int	Connection::retrieve_request() {
+	Client*	client;
+	char	buf[256];
+	int		rlen;
+
+	client = _data._client;
+	while ((rlen = recv(_fd, buf, 255, 0)) > 0) {
+		buf[rlen] = 0;
+		client->process_req(buf);
+	}
+	if (rlen == 0)
+		client->set_state(DECONNECT);
+	return client->get_state();
 }
