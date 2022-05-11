@@ -7,21 +7,13 @@
 # include "Request.hpp"
 # include "Response.hpp"
 
-# define RQLINE		0x00000001 // process rq line --> recv socket
-# define HEADER		0x00000010 // process headers --> recv socket
-# define BODY		0x00000100 // process body --> recv socket
-# define RD_OP		0x00001000 // need syscall read
-# define WR_OP		0x00010000 // need syscall write
-
-# define RESPONSE 	0x00100000 // process response --> send socket
-# define RES_HEAD	0x01000000 // process response header --> send socket
-# define RES_BODY	0x10000000 // process response body --> send socket
-
 /*
 ** class Client:
-** manage incoming connexion
-** store fd associated for communication
-** store servers asked by the client
+** manage incoming connection
+** save servers which listens on this connection
+** format request
+** format response
+** save current state
 */
 class	Client {
 	public:
@@ -31,29 +23,27 @@ class	Client {
 		Client(const servers_t& serv);
 		~Client();
 
-		int			get_flags() const;
+		int			get_state() const;
 		Request*	get_request();
 		Response*	get_response();
 
-		void	set_flag(int bit);
 		void	set_request(Request* request);
-		void	set_response(Response* rersponse);
+		void	set_response(Response* response);
 
-		void	process_req(str_t& raw);
-		void	process_res(int code);
+		const Server*	search_requested_domain() const;
+
+		void	process_req(const str_t& raw);
+		void	process_res();
+		void	send(int socket);
+
+		str_t	raw_data;
 
 	private:
 		Client();
 		Client(const Client&);
 		Client&	operator=(const Client&);
 
-		void	_process_sl(str_t& raw);
-		void	_process_head(str_t& raw);
-		void	_process_body(str_t& raw);
-		void	_process_chunk(str_t& raw);
-		void	_response_header(int code);
-
-		int			_flags;
+		int			_state;
 		Request*	_request;
 		Response*	_response;
 		const servers_t	_servers;

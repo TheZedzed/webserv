@@ -38,7 +38,7 @@ class	HttpContext {
 		HttpContext&	operator=(const HttpContext&);
 
 		bool	_add_client(int socket);
-		bool	_mod_client(int code);
+		bool	_mod_client();
 		bool	_del_client();
 		
 		Multiplexer	_multiplexer;

@@ -9,47 +9,20 @@ HttpContext::HttpContext(Multiplexer::events_t& events, int& fd) : _multiplexer(
 const Multiplexer&	HttpContext::getMultiplexer() const
 { return _multiplexer; }
 
-/*
-** Aim: parse received data
-** save data in peer buffer
-** try extract request from this buffer
-*/
-bool	HttpContext::handle_request() {
-	char	buf[256];
+bool	HttpContext::_mod_client() {
+	const Server*	serv;
 	Client*	client;
-	int		rlen;
 
 	client = peer->getClient();
-	while ((rlen = recv(peer->getFd(), buf, 255, 0)) != -1) {
-		if (rlen == 0)
-			return _del_client();
-		else {
-			buf[rlen] = 0;
-			peer->data_received.append(buf);
-			client->process_req(peer->data_received);
-		}
-	}
-	return SUCCESS;
-}
-
-bool	HttpContext::handle_response() {
-
-}
-
-bool	HttpContext::_mod_client(int code) {
-	Response*	res;
-	Client*		cli;
-
-	cli = peer->getClient();
-	res = new Response(code);
-	cli->set_response(res);
-	cli->set_flag(RESPONSE | RES_HEAD);
+	serv = client->search_requested_domain();
+	client->set_response(new Response(serv, client->get_request()));
 	if (_multiplexer.modEvent(peer, EPOLLOUT) == FAILURE)
 		throw std::runtime_error("Failure epoll_mod\n");
 	return SUCCESS;
 }
 
 bool	HttpContext::_del_client() {
+	std::cout << "Client deleted from epoll!" << std::endl;
 	if (_multiplexer.delEvent(peer) == FAILURE)
 		throw std::runtime_error("Failure epoll_del\n");
 	return SUCCESS;
@@ -88,16 +61,34 @@ bool	HttpContext::new_connection() {
 	return false;
 }
 
+/*
+** Aim: manage event in epoll
+** handle peer request (EPOLLIN)
+** send a response to the peer (EPOLLOUT)
+*/
 void	HttpContext::manage_event(int id) {
-	if (new_connection() == true)
-		return ;
-	else if (events[id].events & EPOLLIN) {
-		if (handle_request() == FAILURE)
-			throw 500;
+	Client*	client;
+	char	buf[256];
+	int		state;
+	int		rlen;
+
+	client = peer->getClient();
+	if (events[id].events & EPOLLIN) {
+		state = client->get_state();
+		while ((rlen = recv(peer->getFd(), buf, 255, 0)) > 0) {
+			buf[rlen] = 0;
+			client->process_req(buf);
+		}
+		if (rlen == 0)
+			_del_client();
+		else if (state & RESPONSE || state & ERROR)
+			_mod_client();
 	}
-	else if (events[id].events & EPOLLOUT) {
-		if (handle_response() == FAILURE) // to do
-			throw 500;
+	if (events[id].events & EPOLLOUT) {
+		client->process_res();
+		peer->send(client->raw_data);
+		if (client->raw_data.find("Connection : close"))
+			_del_client();
 	}
 }
 
@@ -112,9 +103,9 @@ void	HttpContext::worker(void) {
 		for (int i = 0; i < nfds; ++i) {
 			try {
 				peer = reinterpret_cast<Connection*>(events[i].data.ptr);
+				if (new_connection() == true)
+					continue ;
 				manage_event(i);
-			} catch (int code) {
-				_mod_client(code);
 			} catch (...) {
 				throw ;
 			}

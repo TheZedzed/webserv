@@ -1,8 +1,9 @@
 #include "Location.hpp"
 
-Location::Location() : _allow(), _cgi() {
+Location::Location() : _cgi() {
 	_auto = false;
-	_root = "html";
+	_root = "/html";
+	_allow.push_back("GET");
 	_redir = std::make_pair(-1, "");
 }
 

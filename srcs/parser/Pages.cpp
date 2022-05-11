@@ -1,25 +1,51 @@
 #include "Base.hpp"
 
-std::map<int, std::string> code;
-std::map<int, std::string> page;
+size_t	_atoi(const str_t& str, int b) {
+	std::ifstream	tmp(str);
+	size_t	res(0);
+
+	(b == 16) ? tmp >> std::hex >> res : tmp >> std::dec >> res;
+	return res;
+}
+
+str_t	_itoa(int nb) {
+	std::stringstream	res;
+
+	res << nb;
+	return res.str();
+}
+
+str_t&	_tolower(str_t& str) {
+	size_t	i = 0;
+	while (str[i]) {
+		if (str[i] >= 65 || str[i] <= 90)
+			str[i] += 32;
+		++i;
+	}
+	return str;
+}
+
+void	init_error_pages() {
+	status_msgs();
+	default_pages();
+}
 
 void status_msgs() {
-	code[200] = "OK";
-	code[301] = "Moved Permanently"; // return
-	code[400] = "Bad Request"; // ok
-	code[403] = "Forbidden"; // opening / writing / reading
-	code[404] = "Not Found"; // location
-	code[405] = "Method Not Allowed"; // allow
-	code[411] = "Length Required"; // ok
-	code[413] = "Payload Too Large"; // max_body_size
-	code[414] = "URI Too Long"; // ok
-	code[500] = "Internal Server Error"; // ok
-	code[501] = "Not Implemented"; // ok
-	code[505] = "HTTP Version Not Supported"; // ok
+	code_g[200] = "OK"; // ok
+	code_g[301] = "Moved Permanently"; // ok
+	code_g[400] = "Bad Request"; // ok
+	code_g[403] = "Forbidden"; // ok
+	code_g[404] = "Not Found"; // ok
+	code_g[405] = "Method Not Allowed"; // ok
+	code_g[413] = "Payload Too Large"; // ok
+	code_g[414] = "URI Too Long"; // ok
+	code_g[500] = "Internal Server Error"; // ok
+	code_g[501] = "Not Implemented"; // ok
+	code_g[505] = "HTTP Version Not Supported"; // ok
 }
 
 void default_pages() {
-	page[301] =
+	page_g[301] =
 	"<html>" CRLF
 	"<head><title>301 Moved Permanently</title></head>" CRLF
 	"<body>" CRLF
@@ -28,7 +54,7 @@ void default_pages() {
 	"</body>" CRLF
 	"</html>";
 
-	page[400] =
+	page_g[400] =
 	"<html>" CRLF
 	"<head><title>400 Bad Request</title></head>" CRLF
 	"<body>" CRLF
@@ -36,7 +62,7 @@ void default_pages() {
 	"</body>" CRLF
 	"</html>";
 
-	page[403] =
+	page_g[403] =
 	"<html>" CRLF
 	"<head><title>403 Forbidden</title></head>" CRLF
 	"<body>" CRLF
@@ -45,7 +71,7 @@ void default_pages() {
 	"</body>" CRLF
 	"</html>";
 
-	page[404] =
+	page_g[404] =
 	"<html>" CRLF
 	"<head><title>404 Not Found</title></head>" CRLF
 	"<body>" CRLF
@@ -54,16 +80,34 @@ void default_pages() {
 	"</body>" CRLF
 	"</html>";
 
-	page[405] =
+	page_g[405] =
 	"<html>" CRLF
-	"<head><title>405 Not Allowed</title></head>" CRLF
+	"<head><title>405 Method Not Allowed</title></head>" CRLF
 	"<body>" CRLF
-	"<center><h1>405 Not Allowed</h1></center>" CRLF
+	"<center><h1>405 Method Not Allowed</h1></center>" CRLF
 	"<hr><center>" SERVER "</center>" CRLF
 	"</body>" CRLF
 	"</html>";
 
-	page[500] =
+	page_g[413] =
+	"<html>" CRLF
+	"<head><title>413 Payload Too Large</title></head>" CRLF
+	"<body>" CRLF
+	"<center><h1>413 Payload Too Large</h1></center>" CRLF
+	"<hr><center>" SERVER "</center>" CRLF
+	"</body>" CRLF
+	"</html>";
+
+	page_g[414] =
+	"<html>" CRLF
+	"<head><title>414 URI Too Long</title></head>" CRLF
+	"<body>" CRLF
+	"<center><h1>414 URI Too Long</h1></center>" CRLF
+	"<hr><center>" SERVER "</center>" CRLF
+	"</body>" CRLF
+	"</html>";
+
+	page_g[500] =
 	"<html>" CRLF
 	"<head><title>500 Internal Server Error</title></head>" CRLF
 	"<body>" CRLF
@@ -72,7 +116,7 @@ void default_pages() {
 	"</body>" CRLF
 	"</html>";
 
-	page[501] =
+	page_g[501] =
 	"<html>" CRLF
 	"<head><title>501 Not Implemented</title></head>" CRLF
 	"<body>" CRLF
@@ -81,7 +125,7 @@ void default_pages() {
 	"</body>" CRLF
 	"</html>";
 
-	page[505] =
+	page_g[505] =
 	"<html>" CRLF
 	"<head><title>505 HTTP Version Not Supported</title></head>" CRLF
 	"<body>" CRLF
@@ -90,3 +134,9 @@ void default_pages() {
 	"</body>" CRLF
 	"</html>";
 }
+
+str_t&	get_status(int nb)
+{ return code_g[nb]; }
+
+str_t&	get_page_g(int code_g)
+{ return page_g[code_g]; }

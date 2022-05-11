@@ -30,3 +30,7 @@ const Connection::servers_t&	Connection::getServers() const
 
 Client*	Connection::getClient()
 { return _data._client; }
+
+void	Connection::send(const str_t& data) {
+	
+}

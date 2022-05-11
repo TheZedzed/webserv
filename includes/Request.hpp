@@ -24,16 +24,17 @@ class	Request {
 		const strs_t&	get_rl() const;
 		const fields_t&	get_headers() const;
 
-		void	delete_header(str_t& key);
-		void	extract_rl(const strs_t& raw);
-		void	extract_body(const str_t& raw);
-		void	extract_header(str_t& key, str_t& value);
-
-		void	set_chunked(bool type);
+		int	process_rl(str_t& raw_data);
+		int	process_head(str_t& raw_data);
+		int	process_body(str_t& raw_data);
+		int	process_chunk(str_t& raw_data);
 
 	private:
 		Request(const Request&);
 		Request&	operator=(const Request&);
+
+		int	_rline_checker();
+		int	_headers_checker();
 
 		str_t	_body;
 		strs_t	_start;

@@ -19,7 +19,7 @@ class	Connection {
 		bool				getType() const;
 		const servers_t&	getServers() const;
 
-		str_t	data_received;
+		void	send(const str_t& client_data); // write client data on socket _fd
 
 	private:
 		Connection();
