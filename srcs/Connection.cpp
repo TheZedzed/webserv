@@ -19,16 +19,16 @@ Connection::~Connection() {
 	}
 }
 
-int	Connection::getFd() const
+int	Connection::get_fd() const
 { return _fd; }
 
-bool	Connection::getType() const
+bool	Connection::get_type() const
 { return _type; }
 
-const Connection::servers_t&	Connection::getServers() const
+const Connection::servers_t&	Connection::get_servers() const
 { return _data._servers; }
 
-Client*	Connection::getClient()
+Client*	Connection::get_client()
 { return _data._client; }
 
 bool	Connection::send_and_close() {
@@ -54,6 +54,6 @@ int	Connection::retrieve_request() {
 		client->process_req(buf);
 	}
 	if (rlen == 0)
-		client->set_state(DECONNECT);
+		return DECONNECT;
 	return client->get_state();
 }

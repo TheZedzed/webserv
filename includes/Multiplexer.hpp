@@ -19,12 +19,12 @@ class	Multiplexer {
 		~Multiplexer();
 		Multiplexer(events_t& events, int fd);
 
-		bool	addEvent(Connection* data, int flag);
-		bool	modEvent(Connection* data, int flag);
-		bool	delEvent(Connection* data);
+		bool	add_event(Connection* data, int flag);
+		bool	mod_event(Connection* data, int flag);
+		bool	del_event(Connection* data);
 
-		const int&		getInstance() const;
-		const events_t&	getEvents() const;
+		const int&		get_instance() const;
+		const events_t&	get_events() const;
 
 	private:
 		Multiplexer(const Multiplexer&);

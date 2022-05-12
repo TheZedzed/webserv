@@ -13,17 +13,17 @@ bool	HttpContext::_mod_client() {
 	const Server*	serv;
 	Client*	client;
 
-	client = peer->getClient();
+	client = peer->get_client();
 	serv = client->search_requested_domain();
 	client->set_response(new Response(serv, client->get_request()));
-	if (_multiplexer.modEvent(peer, EPOLLOUT) == FAILURE)
+	if (_multiplexer.mod_event(peer, EPOLLOUT) == FAILURE)
 		throw std::runtime_error("Failure epoll_mod\n");
 	return SUCCESS;
 }
 
 bool	HttpContext::_del_client() {
 	std::cout << "Client deleted from epoll!" << std::endl;
-	if (_multiplexer.delEvent(peer) == FAILURE)
+	if (_multiplexer.del_event(peer) == FAILURE)
 		throw std::runtime_error("Failure epoll_del\n");
 	return SUCCESS;
 }
@@ -33,12 +33,12 @@ bool	HttpContext::_add_client(int fd) {
 	Connection*	connex;
 	Client*		client;
 
-	client = new Client(peer->getServers());
+	client = new Client(peer->get_servers());
 	client->set_request(new Request());
 	connex = new Connection(fd, CLIENT, client);
-	events = getMultiplexer().getEvents();
+	events = getMultiplexer().get_events();
 	events.insert(std::make_pair(fd, connex));
-	if (_multiplexer.addEvent(connex, EPOLLIN | EPOLLET) == FAILURE)
+	if (_multiplexer.add_event(connex, EPOLLIN | EPOLLET) == FAILURE)
 		throw std::runtime_error("Failure epoll_add\n");
 	return SUCCESS;
 }
@@ -50,8 +50,8 @@ bool	HttpContext::new_connection() {
 
 	size = sizeof(addr);
 	bzero(&addr, size);
-	if (peer->getType() == LISTENNER) {
-		while ((fd = accept(peer->getFd(), (sockaddr *)&addr, &size)) > 0) {
+	if (peer->get_type() == LISTENNER) {
+		while ((fd = accept(peer->get_fd(), (sockaddr *)&addr, &size)) > 0) {
 			_add_client(fd);
 		}
 		if (fd == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
@@ -67,7 +67,7 @@ bool	HttpContext::new_connection() {
 ** send a response to the peer (EPOLLOUT)
 */
 void	HttpContext::worker(void) {
-	int	epoll = _multiplexer.getInstance();
+	int	epoll = _multiplexer.get_instance();
 	int	state;
 	int	nfds;
 

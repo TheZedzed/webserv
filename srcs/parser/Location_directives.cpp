@@ -15,7 +15,7 @@ bool	Parser::location_directive(stream_t& in, int flag) {
 			return FAILURE;
 	}
 	if (flag)
-		_curr_serv->setRoute(key, &_curr_loc);
+		_curr_serv->set_route(key, &_curr_loc);
 	return SUCCESS;
 }
 
@@ -27,7 +27,7 @@ bool	Parser::wrong_ldirective(int flag) {
 	else if (_line[0] == "return")
 		return return_directive(flag);
 	else if (_line[0] == "autoindex")
-		return autoIndex_directive(flag);
+		return autoindex_directive(flag);
 	else if (_line[0] == "root")
 		return root_directive(flag);
 	return FAILURE;
@@ -39,7 +39,7 @@ bool	Parser::allow_directive(int flag) {
 			return FAILURE;
 	}
 	else
-		_curr_loc->setMethod(_line);
+		_curr_loc->set_method(_line);
 	return SUCCESS;
 }
 
@@ -49,7 +49,7 @@ bool	Parser::cgi_directive(int flag) {
 			return FAILURE;
 	}
 	else
-		_curr_loc->setCgi(_line[1]);
+		_curr_loc->set_cgi(_line[1]);
 	return SUCCESS;
 }
 
@@ -64,11 +64,11 @@ bool	Parser::return_directive(int flag) {
 			return FAILURE;
 	}
 	else
-		_curr_loc->setRedirection(_line);
+		_curr_loc->set_redirection(_line);
 	return SUCCESS;
 }
 
-bool	Parser::autoIndex_directive(int flag) {
+bool	Parser::autoindex_directive(int flag) {
 	if (!flag) {
 		if (_line.size() != 3 || *_line.rbegin() != ";")
 			return FAILURE;
@@ -76,7 +76,7 @@ bool	Parser::autoIndex_directive(int flag) {
 			return FAILURE;
 	}
 	else
-		_curr_loc->setAutoIndex(_line[1]);
+		_curr_loc->set_autoindex(_line[1]);
 	return SUCCESS;
 }
 
@@ -86,6 +86,6 @@ bool	Parser::root_directive(int flag) {
 			return FAILURE;
 	}
 	else
-		_curr_loc->setRoot(_line[1]);
+		_curr_loc->set_root(_line[1]);
 	return SUCCESS;
 }

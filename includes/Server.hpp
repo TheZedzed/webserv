@@ -16,18 +16,18 @@ class	Server {
 		Server();
 		~Server();
 
-		void	setErrorPage(const strs_t& line);
-		void	setRoute(const str_t& key, Location** loc);
-		void	setSocket(const socket_t& socket);
-		void	setNames(const strs_t& line);
-		void	setMax(const str_t& line);
+		void	set_err_page(const strs_t& line);
+		void	set_route(const str_t& key, Location** loc);
+		void	set_socket(const socket_t& socket);
+		void	set_names(const strs_t& line);
+		void	set_max(const str_t& line);
 		void	sanitize_sockets(void);
 
-		const pages_t&		getErrPages() const;
-		const sockets_t&	getSockets() const;
-		const route_t&		getRoutes() const;
-		const strs_t&		getNames() const;
-		size_t				getMax() const;
+		const pages_t&		get_err_pages() const;
+		const sockets_t&	get_sockets() const;
+		const route_t&		get_routes() const;
+		const strs_t&		get_names() const;
+		size_t				get_max() const;
 
 	private:
 		Server(const Server&);

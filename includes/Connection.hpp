@@ -13,11 +13,11 @@ class	Connection {
 		Connection(int fd, int type, const servers_t servers);
 		~Connection();
 
-		Client*	getClient();
+		Client*	get_client();
 
-		int					getFd() const;
-		bool				getType() const;
-		const servers_t&	getServers() const;
+		int					get_fd() const;
+		bool				get_type() const;
+		const servers_t&	get_servers() const;
 
 		bool	send_and_close();
 		int		retrieve_request();

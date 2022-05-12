@@ -76,11 +76,11 @@ str_t&	Response::code_response(const Location* uri_loc, int code) const {
 
 	protocol = _request->get_rl()[2].substr(0, 4);
 	if (code != 200) {
-		redir = uri_loc->getRedir().second; // todo: format
-		it = _server->getErrPages().find(code);
+		redir = uri_loc->get_redir().second; // todo: format
+		it = _server->get_err_pages().find(code);
 		if (code == 302)
 			buffer += _extract_page(code, &redir);
-		else if (it != _server->getErrPages().end())
+		else if (it != _server->get_err_pages().end())
 			buffer += _extract_page(code, &it->second);
 		else
 			buffer += _extract_page(code, nullptr);
@@ -109,8 +109,8 @@ str_t&	Response::_method_in_route(const Location* uri_loc) const {
 	str_t	method;
 
 	method = _request->get_rl()[0];
-	it = uri_loc->getAllow().begin();
-	for (; it != uri_loc->getAllow().end(); ++it) {
+	it = uri_loc->get_allowed().begin();
+	for (; it != uri_loc->get_allowed().end(); ++it) {
 		if (*it == method) {
 			method = *it;
 			break ;
@@ -120,7 +120,7 @@ str_t&	Response::_method_in_route(const Location* uri_loc) const {
 }
 
 str_t&	Response::_process_get(const Location* uri_loc, bool is_dir) const {
-	if (is_dir && uri_loc->getAuto() == false)
+	if (is_dir && uri_loc->get_autoindex() == false)
 		return code_response(uri_loc, 403);
 }
 
@@ -129,7 +129,7 @@ str_t&	Response::_process_delete(const Location* uri_loc) const {
 }
 
 str_t&	Response::_process_post(const Location* uri_loc) const {
-	if (uri_loc->getCgi().empty())
+	if (uri_loc->get_cgi().empty())
 		return code_response(uri_loc, 501);
 }
 
@@ -139,7 +139,7 @@ str_t&	Response::process_method(const Location* uri_loc, const str_t& route) con
 	str_t	buffer;
 
 	method = _method_in_route(uri_loc);
-	if (uri_loc->getRedir().first != -1)
+	if (uri_loc->get_redir().first != -1)
 		buffer += code_response(uri_loc, 312);
 	else if (method.empty())
 		buffer += code_response(uri_loc, 405);

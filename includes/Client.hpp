@@ -27,7 +27,6 @@ class	Client {
 		Request*	get_request();
 		Response*	get_response();
 
-		void	set_state(int state);
 		void	set_request(Request* request);
 		void	set_response(Response* response);
 

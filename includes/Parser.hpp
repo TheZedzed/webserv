@@ -19,7 +19,7 @@ class	Parser {
 		Parser(const char* file);
 		~Parser() {}
 
-		const listenners_t&	getMap() const;
+		const listenners_t&	get_map() const;
 
 		void	loop(stream_t& in, bool flag);
 		void	open_file(const char* file);
@@ -30,11 +30,11 @@ class	Parser {
 		bool	cgi_directive(int flag);
 		bool	root_directive(int flag);
 		bool	return_directive(int flag);
-		bool	autoIndex_directive(int flag);
+		bool	autoindex_directive(int flag);
 		bool	listen_directive(int flag);
 		bool	names_directive(int flag);
-		bool	errPage_directive(int flag);
-		bool	clienSize_directive(int flag);
+		bool	err_page_directive(int flag);
+		bool	client_size_directive(int flag);
 
 	private:
 		Parser();

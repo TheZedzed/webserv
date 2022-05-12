@@ -18,9 +18,6 @@ Response*	Client::get_response()
 int	Client::get_state() const
 { return _state; }
 
-void	Client::set_state(int state)
-{ _state = state; }
-
 const Server*	Client::search_requested_domain() const {
 	servers_t::const_iterator	it1;
 	strs_t::const_iterator		it2;
@@ -29,8 +26,8 @@ const Server*	Client::search_requested_domain() const {
 	it1 = _servers.begin();
 	match = _request->get_headers().find("host")->second;
 	for (; it1 != _servers.end(); ++it1) {
-		it2 = (*it1)->getNames().begin();
-		for (; it2 != (*it1)->getNames().end(); ++it2) {
+		it2 = (*it1)->get_names().begin();
+		for (; it2 != (*it1)->get_names().end(); ++it2) {
 			if (*it2 == match)
 				return *it1;
 		}
@@ -69,7 +66,7 @@ void	Client::process_res() {
 			_state = 501;
 		raw_data += _response->code_response(uri_loc, _state);
 	}
-	else if (_request->get_body().size() > _response->get_server()->getMax())
+	else if (_request->get_body().size() > _response->get_server()->get_max())
 		raw_data += _response->code_response(uri_loc, 413);
 	else if ((uri_loc = _response->construct_route(route)) == nullptr)
 		raw_data += _response->code_response(uri_loc, 404);

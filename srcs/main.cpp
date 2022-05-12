@@ -36,8 +36,8 @@ static bool	build_events(HttpContext::events_t& pool) {
 	int		opt;
 
 	opt = 1;
-	it = parser->getMap().begin();
-	for (; it != parser->getMap().end(); ++it) {
+	it = parser->get_map().begin();
+	for (; it != parser->get_map().end(); ++it) {
 		bzero(&addr, sizeof(addr));
 		socket_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 		setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));

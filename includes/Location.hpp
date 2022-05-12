@@ -17,17 +17,17 @@ class	Location {
 		Location();
 		~Location();
 
-		void	setRoot(const str_t& root);
-		void	setAutoIndex(const str_t& autoindex);
-		void	setRedirection(const strs_t& line);
-		void	setMethod(const strs_t& line);
-		void	setCgi(const str_t& line);
+		void	set_root(const str_t& root);
+		void	set_autoindex(const str_t& autoindex);
+		void	set_redirection(const strs_t& line);
+		void	set_method(const strs_t& line);
+		void	set_cgi(const str_t& line);
 
-		bool				getAuto() const;
-		const str_t&		getCgi() const;
-		const str_t&		getRoot() const;
-		const redir_t&		getRedir() const;
-		const strs_t&	getAllow() const;
+		bool				get_autoindex() const;
+		const str_t&		get_cgi() const;
+		const str_t&		get_root() const;
+		const redir_t&		get_redir() const;
+		const strs_t&		get_allowed() const;
 
 	private:
 		Location(const Location&);

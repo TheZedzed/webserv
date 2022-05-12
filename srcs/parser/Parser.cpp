@@ -19,7 +19,7 @@ Parser::Parser(const char* file) {
 	}
 }
 
-const Parser::listenners_t&	Parser::getMap() const
+const Parser::listenners_t&	Parser::get_map() const
 { return _dumb_map; }
 
 /* remove useless sockets */
@@ -51,8 +51,8 @@ void	Parser::_fill_map(int flag) {
 
 	if (flag) {
 		_curr_serv->sanitize_sockets();
-		it = _curr_serv->getSockets().begin();
-		for (; it != _curr_serv->getSockets().end(); ++it) {
+		it = _curr_serv->get_sockets().begin();
+		for (; it != _curr_serv->get_sockets().end(); ++it) {
 			res = _dumb_map.find(*it);
 			if (res != _dumb_map.end()) // socket found
 				res->second.push_back(_curr_serv);
@@ -105,7 +105,7 @@ void	Parser::loop(stream_t& in, bool flag) {
 				if (server_directive(in, flag) == FAILURE)
 					throw CONF_ERR;
 			}
-			if (_curr_serv->getSockets().empty())
+			if (_curr_serv->get_sockets().empty())
 				throw CONF_ERR;
 			_fill_map(flag);
 			continue ;

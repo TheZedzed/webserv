@@ -4,9 +4,9 @@ bool	Parser::server_directive(stream_t& in, int flag) {
 	if (_line[0] == "listen")
 		return listen_directive(flag);
 	else if (_line[0] == "error_page")
-		return errPage_directive(flag);
+		return err_page_directive(flag);
 	else if (_line[0] == "max_client_body_size")
-		return clienSize_directive(flag);
+		return client_size_directive(flag);
 	else if (_line[0] == "server_name")
 		return names_directive(flag);
 	else if (_line[0] == "location")
@@ -20,11 +20,11 @@ bool	Parser::names_directive(int flag) {
 			return FAILURE;
 	}
 	else
-		_curr_serv->setNames(_line);
+		_curr_serv->set_names(_line);
 	return SUCCESS;
 }
 
-bool	Parser::clienSize_directive(int flag) {
+bool	Parser::client_size_directive(int flag) {
 	char	*end;
 
 	if (!flag && (_line.size() != 3 || *_line.rbegin() != ";"))
@@ -33,7 +33,7 @@ bool	Parser::clienSize_directive(int flag) {
 	if (!flag && (*end || _line[1].size() > 4))
 		return FAILURE;
 	if (flag)
-		_curr_serv->setMax(_line[1]);
+		_curr_serv->set_max(_line[1]);
 	return SUCCESS;
 }
 
@@ -77,11 +77,11 @@ bool	Parser::listen_directive(int flag) {
 		_dumb_tmp.push_back(val);
 	}
 	else
-		(_curr_serv)->setSocket(val);
+		(_curr_serv)->set_socket(val);
 	return SUCCESS;
 }
 
-bool	Parser::errPage_directive(int flag) {
+bool	Parser::err_page_directive(int flag) {
 	const char*	err[] = {"400", "403", "404", "405", "500", "501", "505", NULL};
 	int	i;
 
@@ -95,6 +95,6 @@ bool	Parser::errPage_directive(int flag) {
 			return FAILURE;
 	}
 	else
-		_curr_serv->setErrorPage(_line);
+		_curr_serv->set_err_page(_line);
 	return SUCCESS;
 }

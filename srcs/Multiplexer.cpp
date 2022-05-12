@@ -8,34 +8,34 @@ Multiplexer::~Multiplexer() {
 
 	std::cout << "Destroy multiplexer.." << std::endl;
 	for (it1 = _events.begin(); it1 != _events.end(); ++it1) {
-		delEvent(it1->second);
+		del_event(it1->second);
 	}
 	_events.clear();
 }
 
-const int&	Multiplexer::getInstance() const
+const int&	Multiplexer::get_instance() const
 { return _instance; }
 
-const Multiplexer::events_t&	Multiplexer::getEvents() const
+const Multiplexer::events_t&	Multiplexer::get_events() const
 { return _events; }
 
-bool	Multiplexer::modEvent(Connection* el, int flag) {
+bool	Multiplexer::mod_event(Connection* el, int flag) {
 	struct epoll_event	ev;
 	int	res;
 
 	ev.data.ptr = el;
 	ev.events = flag;
-	res = epoll_ctl(_instance, EPOLL_CTL_MOD, el->getFd(), &ev);
+	res = epoll_ctl(_instance, EPOLL_CTL_MOD, el->get_fd(), &ev);
 	if (res)
 		return FAILURE;
 	return SUCCESS;
 }
 
-bool	Multiplexer::delEvent(Connection* el) {
+bool	Multiplexer::del_event(Connection* el) {
 	int	res;
 	int	fd;
 
-	fd = el->getFd();
+	fd = el->get_fd();
 	res = epoll_ctl(_instance, EPOLL_CTL_DEL, fd, NULL);
 	if (res == -1)
 		return FAILURE;
@@ -44,13 +44,13 @@ bool	Multiplexer::delEvent(Connection* el) {
 	return SUCCESS;
 }
 
-bool	Multiplexer::addEvent(Connection* el, int flag) {
+bool	Multiplexer::add_event(Connection* el, int flag) {
 	struct epoll_event	ev;
 	int		res;
 
 	ev.data.ptr = el;
 	ev.events = flag;
-	res = epoll_ctl(_instance, EPOLL_CTL_ADD, el->getFd(), &ev);
+	res = epoll_ctl(_instance, EPOLL_CTL_ADD, el->get_fd(), &ev);
 	if (res == -1)
 		return FAILURE;
 	return SUCCESS;
