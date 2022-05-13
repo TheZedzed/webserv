@@ -17,13 +17,13 @@ Response::~Response()
 const Server*	Response::get_server() const
 { return _server; }
 
-str_t&	Response::_extract_page(int& code, const str_t* path) const {
+str_t	Response::_extract_page(int& code, const str_t* path) const {
 	std::ifstream	infile;
 	str_t	buffer;
 	str_t	line;
 
 	_init_error_pages();
-	if (path == nullptr) // default page
+	if (path == NULL) // default page
 		return page_g[code];
 	infile.open(path->c_str());
 	if (!infile.is_open() && (code = 500)) // error openning file
@@ -68,7 +68,7 @@ void	Response::_set_header(str_t& buffer, int code) const { // search how to for
 	buffer = data;
 }
 
-str_t&	Response::code_response(const Location* uri_loc, int code) const {
+str_t	Response::code_response(const Location* uri_loc, int code) const {
 	Server::pages_t::const_iterator	it;
 	str_t	protocol;
 	str_t	buffer;
@@ -83,7 +83,7 @@ str_t&	Response::code_response(const Location* uri_loc, int code) const {
 		else if (it != _server->get_err_pages().end())
 			buffer += _extract_page(code, &it->second);
 		else
-			buffer += _extract_page(code, nullptr);
+			buffer += _extract_page(code, NULL);
 	}
 	if (protocol == "HTTP/")
 		code != 302 ? _set_header(buffer, code) : _set_header(buffer, redir);
@@ -95,7 +95,7 @@ str_t&	Response::code_response(const Location* uri_loc, int code) const {
 ** return server requested location block
 */
 const Location*	Response::construct_route(str_t& route) const {
-	Location*	loc(nullptr);
+	Location*	loc(NULL);
 	str_t	tmp;
 
 	// replace with location in _server
@@ -104,7 +104,7 @@ const Location*	Response::construct_route(str_t& route) const {
 	return loc;
 }
 
-str_t&	Response::_method_in_route(const Location* uri_loc) const {
+str_t	Response::_method_in_route(const Location* uri_loc) const {
 	strs_t::const_iterator	it;
 	str_t	method;
 
@@ -119,21 +119,24 @@ str_t&	Response::_method_in_route(const Location* uri_loc) const {
 	return method;
 }
 
-str_t&	Response::_process_get(const Location* uri_loc, bool is_dir) const {
+str_t	Response::_process_get(const Location* uri_loc, bool is_dir) const {
 	if (is_dir && uri_loc->get_autoindex() == false)
 		return code_response(uri_loc, 403);
+	return str_t("get");
 }
 
-str_t&	Response::_process_delete(const Location* uri_loc) const {
-
+str_t	Response::_process_delete(const Location* uri_loc) const {
+	(void)uri_loc;
+	return str_t("delete");
 }
 
-str_t&	Response::_process_post(const Location* uri_loc) const {
+str_t	Response::_process_post(const Location* uri_loc) const {
 	if (uri_loc->get_cgi().empty())
 		return code_response(uri_loc, 501);
+	return str_t("post");
 }
 
-str_t&	Response::process_method(const Location* uri_loc, const str_t& route) const {
+str_t	Response::process_method(const Location* uri_loc, const str_t& route) const {
 	struct stat	st;
 	str_t	method;
 	str_t	buffer;
@@ -148,7 +151,7 @@ str_t&	Response::process_method(const Location* uri_loc, const str_t& route) con
 	else if (method == "POST")
 		buffer += _process_post(uri_loc);
 	else if (method == "GET")
-		buffer += _process_get(uri_loc, (st.st_mode & S_IFMT == S_IFDIR));
+		buffer += _process_get(uri_loc, ((st.st_mode & S_IFMT) == S_IFDIR));
 	else if (method == "DELETE")
 		buffer += _process_delete(uri_loc);
 	return buffer;

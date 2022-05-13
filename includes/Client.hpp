@@ -7,6 +7,8 @@
 # include "Request.hpp"
 # include "Response.hpp"
 
+class Response;
+
 /*
 ** class Client:
 ** manage incoming connection

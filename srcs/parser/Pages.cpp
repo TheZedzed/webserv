@@ -1,9 +1,13 @@
 #include "Base.hpp"
 
+std::map<int, str_t> code_g;
+std::map<int, str_t> page_g;
+
 size_t	_atoi(const str_t& str, int b) {
-	std::ifstream	tmp(str);
+	std::stringstream	tmp;
 	size_t	res(0);
 
+	tmp.str(str);
 	(b == 16) ? tmp >> std::hex >> res : tmp >> std::dec >> res;
 	return res;
 }
@@ -25,7 +29,7 @@ str_t&	_tolower(str_t& str) {
 	return str;
 }
 
-void	init_error_pages() {
+void	_init_error_pages() {
 	status_msgs();
 	default_pages();
 }

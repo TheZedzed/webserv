@@ -39,8 +39,8 @@
 
 # define CONF_ERR "Wrong config file!"
 
-# define CLIENT 2
-# define LISTENNER 3
+# define CLIENT 1
+# define LISTENNER 0
 
 # define RQLINE		0x00000001 // process rq line --> recv socket
 # define HEADER		0x00000002 // process headers --> recv socket
@@ -69,5 +69,8 @@ str_t	_itoa(int nb);
 void	_init_error_pages();
 str_t&	_tolower(str_t& str);
 size_t	_atoi(const str_t& str, int b);
+
+void default_pages();
+void status_msgs();
 
 #endif

@@ -40,7 +40,7 @@ class	HttpContext {
 		bool	_add_client(int socket);
 		bool	_mod_client();
 		bool	_del_client();
-		
+
 		Multiplexer	_multiplexer;
 };
 

@@ -17,7 +17,7 @@ class	Parser {
 		typedef std::map<socket_t, servers_t>	listenners_t;
 
 		Parser(const char* file);
-		~Parser() {}
+		~Parser();
 
 		const listenners_t&	get_map() const;
 

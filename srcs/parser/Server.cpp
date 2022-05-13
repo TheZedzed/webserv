@@ -3,9 +3,6 @@
 Server::Server() : _max(1024)
 { std::cout << "\t[Create Server]" << std::endl; }
 
-Server::~Server()
-{ std::cout << "\t[Destroy Server]" << std::endl; }
-
 Server::~Server() {
 	route_t::iterator	it;
 
@@ -113,7 +110,7 @@ std::ostream&	operator<<(std::ostream& out, const Server& server) {
 		out << it3->second;
 		out << "\n";
 	}
-	
+
 	out << "\t[route_t]:\n";
 	it2 = server.get_routes().begin();
 	for (; it2 != server.get_routes().end(); ++it2) {

@@ -3,9 +3,9 @@ CXX			:= g++
 CXXPPFLAGS	:= -I./includes
 CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98 -g
 
-FILES	:=	main HttpContext Event Response Request Base Client \
-			parser/Parser parser/Server parser/Location parser/Pages \
-			parser/Server_directives parser/Location_directives
+FILES	:=	parser/Parser parser/Server parser/Location parser/Pages \
+			parser/Server_directives parser/Location_directives \
+			main HttpContext Multiplexer Request Client Response Connection
 
 RM		:= rm -rf
 SRCS	:= $(addsuffix .cpp, $(addprefix srcs/, $(FILES)))

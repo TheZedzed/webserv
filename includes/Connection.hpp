@@ -10,7 +10,7 @@ class	Connection {
 		typedef Client::servers_t	servers_t;
 
 		Connection(int fd, int type, Client* client);
-		Connection(int fd, int type, const servers_t servers);
+		Connection(int fd, int type, const servers_t& servers);
 		~Connection();
 
 		Client*	get_client();
@@ -28,8 +28,8 @@ class	Connection {
 		Connection&	operator=(const Connection&);
 
 		union	data_u {
-			servers_t	_servers;
-			Client*		_client;
+			Client*				_client;
+			const servers_t*	_servers;
 			~data_u() {}
 			data_u() {}
 		};

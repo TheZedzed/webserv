@@ -19,6 +19,18 @@ Parser::Parser(const char* file) {
 	}
 }
 
+Parser::~Parser() {
+	listenners_t::iterator	it1;
+	servers_t::iterator		it2;
+
+	for (it1 = _dumb_map.begin(); it1 != _dumb_map.end(); ++it1) {
+		it2 = it1->second.begin();
+		for (; it2 != it1->second.end(); ++it2) {
+			delete *it2;
+		}
+	}
+}
+
 const Parser::listenners_t&	Parser::get_map() const
 { return _dumb_map; }
 
@@ -65,7 +77,7 @@ void	Parser::_fill_map(int flag) {
 					servers.push_back(_curr_serv);
 					_dumb_map.insert(std::make_pair(*it, servers));
 				}
-			}	
+			}
 		}
 	}
 	_dumb_tmp.clear();
@@ -82,12 +94,11 @@ bool	Parser::_getline(stream_t& in, str_t& buffer) {
 	str_t	elem;
 
 	_line.clear();
-	if (std::getline(in, buffer)) { // split line
+	if (std::getline(in, buffer)) {
 		tmp.str(buffer);
 		while (tmp >> elem)
 			_line.push_back(elem);
-		if (_line.size() == 0 || _end_of_block()) // empty line or "}"
-			return _getline(in, buffer);
+		return true;
 	}
 	return false;
 }
@@ -101,15 +112,19 @@ void	Parser::loop(stream_t& in, bool flag) {
 		if (_server_block()) {
 			if (flag)
 				_curr_serv = new Server();
-			while (_getline(in, buffer)) {
+			while (_getline(in, buffer) && !_end_of_block()) {
+				if (_line.size() == 0)
+					continue ;
 				if (server_directive(in, flag) == FAILURE)
 					throw CONF_ERR;
 			}
-			if (_curr_serv->get_sockets().empty())
-				throw CONF_ERR;
+			if (flag && _curr_serv->get_sockets().empty())
+				_curr_serv->set_socket(std::make_pair("0.0.0.0", "8080"));
 			_fill_map(flag);
 			continue ;
 		}
+		else if (_line.size() == 0 || _end_of_block())
+			continue ;
 		throw CONF_ERR;
 	}
 	_smart_map();

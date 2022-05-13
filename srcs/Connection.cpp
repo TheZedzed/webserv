@@ -3,20 +3,14 @@
 Connection::Connection(int fd, int type, Client* client) : _fd(fd), _type(type)
 { _data._client = client; }
 
-Connection::Connection(int fd, int type, const servers_t servers) : _fd(fd), _type(type)
-{ _data._servers = servers; }
+Connection::Connection(int fd, int type, const servers_t& servers) : _fd(fd), _type(type)
+{ _data._servers = &servers; }
 
 Connection::~Connection() {
-	servers_t::iterator	it;
+	servers_t::const_iterator	it;
 
 	if (_type == CLIENT)
 		delete _data._client;
-	else {
-		it = _data._servers.begin();
-		for (; it != _data._servers.end(); ++it)
-			delete *it;
-		_data._servers.clear();
-	}
 }
 
 int	Connection::get_fd() const
@@ -26,7 +20,7 @@ bool	Connection::get_type() const
 { return _type; }
 
 const Connection::servers_t&	Connection::get_servers() const
-{ return _data._servers; }
+{ return *_data._servers; }
 
 Client*	Connection::get_client()
 { return _data._client; }

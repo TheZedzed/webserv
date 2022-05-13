@@ -39,8 +39,8 @@ bool	Multiplexer::del_event(Connection* el) {
 	res = epoll_ctl(_instance, EPOLL_CTL_DEL, fd, NULL);
 	if (res == -1)
 		return FAILURE;
-	close(fd);
 	delete el;
+	close(fd);
 	return SUCCESS;
 }
 

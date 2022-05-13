@@ -10,8 +10,10 @@ bool	Parser::location_directive(stream_t& in, int flag) {
 		key = _line[1];
 		_curr_loc = new Location();
 	}
-	while (_getline(in, buffer)) {
-		if (wrong_ldirective(flag))
+	while (_getline(in, buffer) && !_end_of_block()) {
+		if (_line.size() == 0)
+			continue ;
+		else if (wrong_ldirective(flag))
 			return FAILURE;
 	}
 	if (flag)
@@ -54,10 +56,7 @@ bool	Parser::cgi_directive(int flag) {
 }
 
 bool	Parser::return_directive(int flag) {
-	int	i;
-
 	if (!flag) {
-		i = 0;
 		if (_line.size() != 4 || *_line.rbegin() != ";")
 			return FAILURE;
 		if (_line[1] != "301")

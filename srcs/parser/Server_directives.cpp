@@ -70,7 +70,7 @@ bool	Parser::listen_directive(int flag) {
 		it = _dumb_tmp.begin();
 		ite = _dumb_tmp.end();
 		std::strtol(val.second.c_str(), &end, 10);
-		if (val.second.size() > 4 || *end)
+		if (val.second.size() > 5 || *end)
 			return FAILURE;
 		else if (std::find(it, ite, val) != ite)
 			return FAILURE;

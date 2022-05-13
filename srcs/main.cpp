@@ -5,9 +5,11 @@ static HttpContext	*webserver;
 static Parser		*parser;
 
 static void	handler(int signum) {
-	delete parser;
-	delete webserver;
-	exit(0);
+	if (signum == SIGQUIT) {
+		delete webserver;
+		delete parser;
+		exit(0);
+	}
 }
 
 static bool	listenning(const HttpContext::events_t& pool, int& instance) {
@@ -16,14 +18,14 @@ static bool	listenning(const HttpContext::events_t& pool, int& instance) {
 	int	res;
 
 	instance = epoll_create(1);
-	if (instance == -1) 
+	if (instance == -1)
 		return FAILURE;
 	for (it = pool.begin(); it != pool.end(); ++it) {
 		ev.data.ptr = it->second;
 		ev.events = EPOLLIN;
 		res = epoll_ctl(instance, EPOLL_CTL_ADD, it->first, &ev);
 		if (res == -1)
-			return FAILURE;	
+			return FAILURE;
 	}
 	return SUCCESS;
 }
@@ -43,7 +45,7 @@ static bool	build_events(HttpContext::events_t& pool) {
 		setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 		addr.sin_family = AF_INET; // ipv4
 		addr.sin_addr.s_addr = htonl(inet_addr(it->first.first.c_str()));
-		addr.sin_port =  htons(std::atoi(it->first.second.c_str()));
+		addr.sin_port =  htons(_atoi(it->first.second, 10));
 		if (bind(socket_fd, (sockaddr *)&addr, sizeof(sockaddr_in)))
 			return FAILURE;
 		if (listen(socket_fd, 100)) // up to 100 connections
@@ -58,7 +60,7 @@ int	main(int ac, char **av) {
 	HttpContext::events_t	events;
 	int			epoll;
 
-	signal(SIGINT, handler);
+	signal(SIGQUIT, handler);
 	try {
 		if (ac > 2)
 			throw std::logic_error("Usage: ./webserve [config_file]");
@@ -72,6 +74,8 @@ int	main(int ac, char **av) {
 	}
 	catch (const std::exception& error) {
 		std::cerr << error.what() << std::endl;
+	} catch (...) {
+
 	}
 	delete parser;
 	delete webserver;
