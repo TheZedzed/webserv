@@ -3,11 +3,17 @@
 static Connection*	peer;
 static epoll_event	events[256];
 
-HttpContext::HttpContext(Multiplexer::events_t& events, int& fd) : _multiplexer(events, fd)
-{ std::cout << "Creating webserver!" << std::endl;}
+HttpContext::HttpContext(const char* conf_file) {
+	std::cout << "Creating webserver!" << std::endl;
+	_parser = new Parser(conf_file);
+	if (_multiplexer.build_events(_parser->get_map()) == FAILURE)
+		throw std::runtime_error("Failed init multiplexing");
+	if (_multiplexer.start_listenning() == FAILURE)
+		throw std::runtime_error("Failed up servers");
+}
 
-const Multiplexer&	HttpContext::getMultiplexer() const
-{ return _multiplexer; }
+HttpContext::~HttpContext()
+{ delete _parser; }
 
 bool	HttpContext::_mod_client() {
 	const Server*	serv;
@@ -29,15 +35,13 @@ bool	HttpContext::_del_client() {
 }
 
 bool	HttpContext::_add_client(int fd) {
-	HttpContext::events_t	events;
 	Connection*	connex;
 	Client*		client;
 
 	client = new Client(peer->get_servers());
 	client->set_request(new Request());
 	connex = new Connection(fd, CLIENT, client);
-	events = getMultiplexer().get_events();
-	events.insert(std::make_pair(fd, connex));
+	_multiplexer.get_events().insert(std::make_pair(fd, connex));
 	if (_multiplexer.add_event(connex, EPOLLIN | EPOLLET) == FAILURE)
 		throw std::runtime_error("Failure epoll_add\n");
 	return SUCCESS;

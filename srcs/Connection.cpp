@@ -7,8 +7,6 @@ Connection::Connection(int fd, int type, const servers_t& servers) : _fd(fd), _t
 { _data._servers = &servers; }
 
 Connection::~Connection() {
-	servers_t::const_iterator	it;
-
 	if (_type == CLIENT)
 		delete _data._client;
 }

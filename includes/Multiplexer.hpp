@@ -17,14 +17,17 @@ class	Multiplexer {
 		typedef Connection::servers_t			servers_t;
 
 		~Multiplexer();
-		Multiplexer(events_t& events, int fd);
+		Multiplexer();
+
+		bool	build_events(const Parser::listenners_t& map);
+		bool	start_listenning();
 
 		bool	add_event(Connection* data, int flag);
 		bool	mod_event(Connection* data, int flag);
 		bool	del_event(Connection* data);
 
 		const int&		get_instance() const;
-		const events_t&	get_events() const;
+		events_t&		get_events();
 
 	private:
 		Multiplexer(const Multiplexer&);

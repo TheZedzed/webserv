@@ -3,20 +3,15 @@
 Parser::Parser(const char* file) {
 	std::ifstream	infile;
 
-	try {
-		infile.open(file);
-		loop(infile, 0);
-		infile.close();
-		infile.open(file);
-		loop(infile, 1);
-		infile.close();
-	}
-	catch (...) {
-		std::cerr << CONF_ERR << std::endl;
+	infile.open(file);
+	if (!infile.is_open() || loop(infile, 0) == FAILURE) {
 		if (infile.is_open())
 			infile.close();
-		throw ;
+		throw std::runtime_error("Error parsing conf file!");
 	}
+	infile.close();
+	infile.open(file);
+	loop(infile, 1);
 }
 
 Parser::~Parser() {
@@ -103,11 +98,9 @@ bool	Parser::_getline(stream_t& in, str_t& buffer) {
 	return false;
 }
 
-void	Parser::loop(stream_t& in, bool flag) {
+bool	Parser::loop(stream_t& in, bool flag) {
 	str_t	buffer;
 
-	if (!in.is_open())
-		throw CONF_ERR;
 	while (_getline(in, buffer)) {
 		if (_server_block()) {
 			if (flag)
@@ -116,7 +109,7 @@ void	Parser::loop(stream_t& in, bool flag) {
 				if (_line.size() == 0)
 					continue ;
 				if (server_directive(in, flag) == FAILURE)
-					throw CONF_ERR;
+					return FAILURE;
 			}
 			if (flag && _curr_serv->get_sockets().empty())
 				_curr_serv->set_socket(std::make_pair("0.0.0.0", "8080"));
@@ -125,7 +118,8 @@ void	Parser::loop(stream_t& in, bool flag) {
 		}
 		else if (_line.size() == 0 || _end_of_block())
 			continue ;
-		throw CONF_ERR;
+		return FAILURE;
 	}
 	_smart_map();
+	return SUCCESS;
 }

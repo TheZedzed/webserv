@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(const servers_t& serv) : _state(RQLINE), _servers(serv)
+Client::Client(const servers_t& serv) : _state(RQLINE), _request(), _response(), _servers(serv)
 { std::cout << "Create new client!" << std::endl; }
 
 Client::~Client() {

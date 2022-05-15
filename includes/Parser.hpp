@@ -21,7 +21,7 @@ class	Parser {
 
 		const listenners_t&	get_map() const;
 
-		void	loop(stream_t& in, bool flag);
+		bool	loop(stream_t& in, bool flag);
 		void	open_file(const char* file);
 		bool	server_directive(stream_t& in, int flag);
 		bool	location_directive(stream_t& in, int flag);

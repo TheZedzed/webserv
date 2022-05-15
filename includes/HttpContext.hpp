@@ -4,6 +4,7 @@
 # define HTTPCONTEXT_HPP
 
 # include "Multiplexer.hpp"
+# include "Parser.hpp"
 
 /* class HttpContext:
 ** nginx like Http-context
@@ -19,18 +20,15 @@
 */
 class	HttpContext {
 	public:
-		typedef Multiplexer::events_t	events_t;
+		HttpContext(const char* conf_file);
+		~HttpContext();
 
-		HttpContext(events_t& events, int& fd);
-		~HttpContext() {}
 
 		void	worker(); // events loop
 		void	manage_event(int id); // manage event
 		bool	new_connection(); // manage new connection
 		bool	handle_request(); // manage received data
 		bool	handle_response(); // send data
-
-		const Multiplexer&	getMultiplexer() const;
 
 	private:
 		HttpContext();
@@ -41,7 +39,8 @@ class	HttpContext {
 		bool	_mod_client();
 		bool	_del_client();
 
-		Multiplexer	_multiplexer;
+		const Parser*	_parser;
+		Multiplexer		_multiplexer;
 };
 
 #endif
