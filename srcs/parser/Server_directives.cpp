@@ -1,5 +1,7 @@
 #include "Parser.hpp"
 
+static const char*	err[] = {"400", "403", "404", "405", "413", "414", "500", "501", "505", NULL};
+
 bool	Parser::server_directive(stream_t& in, int flag) {
 	if (_line[0] == "listen")
 		return listen_directive(flag);
@@ -48,13 +50,16 @@ socket_t	Parser::_lil_dns(void) {
 	host = _line[1].substr(0, pos);
 	port = _line[1].substr(pos + 1);
 	if (host == "localhost")
-		host = "127.0.0.1";
-	else if (host == "*")
-		host = "0.0.0.0";
-	return std::make_pair(host, port);
+		return std::make_pair("127.0.0.1", port);
+	else if (host == "*" || host == "0.0.0.0")
+		return std::make_pair("0.0.0.0", port);
+	return std::make_pair("", "");
 }
 
-/* tuple host:port mandatory */
+/*
+** tuple host:port
+** valid hosts: loacalhost or 127.0.0.1 or 0.0.0.0
+*/
 bool	Parser::listen_directive(int flag) {
 	sockets_t::iterator	ite;
 	sockets_t::iterator	it;
@@ -82,7 +87,6 @@ bool	Parser::listen_directive(int flag) {
 }
 
 bool	Parser::err_page_directive(int flag) {
-	const char*	err[] = {"400", "403", "404", "405", "500", "501", "505", NULL};
 	int	i;
 
 	if (!flag) {

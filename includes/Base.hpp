@@ -6,7 +6,6 @@
 /*
 ** all necessary dependancies
 */
-
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <netinet/ip.h>
@@ -27,7 +26,6 @@
 # include <vector>
 # include <algorithm>
 
-#define DEBUG 0
 #define SUCCESS 0
 #define FAILURE 1
 
@@ -36,8 +34,6 @@
 # define CRLF "\r\n"
 
 # define SERVER "webserv"
-
-# define CONF_ERR "Wrong config file!"
 
 # define CLIENT 1
 # define LISTENNER 0

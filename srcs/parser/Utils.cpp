@@ -22,7 +22,7 @@ str_t	_itoa(int nb) {
 str_t&	_tolower(str_t& str) {
 	size_t	i = 0;
 	while (str[i]) {
-		if (str[i] >= 65 || str[i] <= 90)
+		if (str[i] >= 65 && str[i] <= 90)
 			str[i] += 32;
 		++i;
 	}

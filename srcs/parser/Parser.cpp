@@ -12,6 +12,20 @@ Parser::Parser(const char* file) {
 	infile.close();
 	infile.open(file);
 	loop(infile, 1);
+
+	listenners_t::const_iterator	it;
+	servers_t::const_iterator	it1;
+	int	i;
+
+	i = -1;
+	it = _dumb_map.begin();
+	for (; it != _dumb_map.end(); ++it) {
+		it1 = it->second.begin();
+		std::cout << "Server id: " << ++i << std::endl;
+		for (; it1 != it->second.end(); ++it1) {
+			std::cout << **it1;
+		}
+	}
 }
 
 Parser::~Parser() {
@@ -29,48 +43,61 @@ Parser::~Parser() {
 const Parser::listenners_t&	Parser::get_map() const
 { return _dumb_map; }
 
-/* remove useless sockets */
-void	Parser::_smart_map() {
-	listenners_t::iterator	it;
-	listenners_t::iterator	it1;
-	str_t port;
+void	Parser::_new_node(const socket_t socket, Server* server) {
+	servers_t	servers;
 
-	it = _dumb_map.begin();
-	for (; it != _dumb_map.end(); ++it) {
-		if (it->first.first == "0.0.0.0") {
-			port = it->first.second;
-			it1 = it;
-			++it1;
-			for (; it1 != _dumb_map.end(); ++it1) {
-				if (it1->first.second == port)
-					_dumb_map.erase(it1);
+	servers.push_back(server);
+	_dumb_map.insert(std::make_pair(socket, servers));
+	servers.clear();
+}
+
+void	Parser::_insert_any(const socket_t socket, Server* server) {
+	listenners_t::iterator	it2;
+	listenners_t::iterator		res;
+	servers_t	servers;
+	bool	found;
+
+	found =false;
+	it2 = _dumb_map.begin();
+	res = _dumb_map.find(socket);
+	if (res != _dumb_map.end())
+		res->second.push_back(server);
+	else {
+		for(; it2 != _dumb_map.end(); ++it2) {
+			if (it2->first.second == socket.second) {
+				servers = it2->second;
+				servers.push_back(server);
+				_dumb_map.insert(std::make_pair(socket, servers));
+				_dumb_map.erase(it2);
+				servers.clear();
+				found = true;
 			}
 		}
-		else
-			break ;
+		if (found == false)
+			_new_node(socket, server);
 	}
 }
 
 void	Parser::_fill_map(int flag) {
 	sockets_t::const_iterator	it;
 	listenners_t::iterator		res;
-	servers_t		servers;
 
 	if (flag) {
 		_curr_serv->sanitize_sockets();
 		it = _curr_serv->get_sockets().begin();
 		for (; it != _curr_serv->get_sockets().end(); ++it) {
-			res = _dumb_map.find(*it);
-			if (res != _dumb_map.end()) // socket found
-				res->second.push_back(_curr_serv);
-			else {
-				res = _dumb_map.find(std::make_pair("0.0.0.0", (*it).second));
-				if (res != _dumb_map.end()) // socket listenning on * address found
+			if (it->first == "0.0.0.0")
+				_insert_any(*it, _curr_serv);
+			else { // 127.0.0.1
+				res = _dumb_map.find(*it);
+				if (res != _dumb_map.end())
 					res->second.push_back(_curr_serv);
-				else { // new socket
-					servers.clear();
-					servers.push_back(_curr_serv);
-					_dumb_map.insert(std::make_pair(*it, servers));
+				else {
+					res = _dumb_map.find(std::make_pair("0.0.0.0", (*it).second));
+					if (res != _dumb_map.end())
+						res->second.push_back(_curr_serv);
+					else
+						_new_node(*it, _curr_serv);
 				}
 			}
 		}
@@ -120,6 +147,5 @@ bool	Parser::loop(stream_t& in, bool flag) {
 			continue ;
 		return FAILURE;
 	}
-	_smart_map();
 	return SUCCESS;
 }

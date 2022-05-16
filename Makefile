@@ -3,7 +3,7 @@ CXX			:= g++
 CXXPPFLAGS	:= -I./includes
 CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98 -g
 
-FILES	:=	parser/Parser parser/Server parser/Location parser/Pages \
+FILES	:=	parser/Parser Server parser/Location parser/Utils \
 			parser/Server_directives parser/Location_directives \
 			main HttpContext Multiplexer Request Client Response Connection
 

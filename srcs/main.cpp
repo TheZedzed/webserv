@@ -5,7 +5,7 @@ static HttpContext	*webserver;
 static void	handler(int signum) {
 	if (signum == SIGQUIT) {
 		delete webserver;
-		exit(0);
+		exit(128 + SIGQUIT);
 	}
 }
 

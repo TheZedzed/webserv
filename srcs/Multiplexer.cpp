@@ -5,11 +5,15 @@ Multiplexer::Multiplexer()
 
 Multiplexer::~Multiplexer() {
 	events_t::const_iterator	it1;
+	events_t::const_iterator	save;
 
 	std::cout << "Destroy multiplexer.." << std::endl;
-	for (it1 = _events.begin(); it1 != _events.end(); ++it1) {
+	it1 = _events.begin();
+	while (it1 != _events.end()) {
+		save = it1;
+		++save;
 		del_event(it1->second);
-		close(it1->first);
+		it1 = save;
 	}
 }
 
@@ -19,9 +23,6 @@ const int&	Multiplexer::get_instance() const
 Multiplexer::events_t&	Multiplexer::get_events()
 { return _events; }
 
-/*
-**
-*/
 bool	Multiplexer::build_events(const Parser::listenners_t& map) {
 	Parser::listenners_t::const_iterator	it;
 	Connection*	listenner;
@@ -85,9 +86,11 @@ bool	Multiplexer::mod_event(Connection* el, int flag) {
 bool	Multiplexer::del_event(Connection* el) {
 	int	res;
 
+	_events.erase(el->get_fd());
 	res = epoll_ctl(_instance, EPOLL_CTL_DEL, el->get_fd(), NULL);
 	if (res == -1)
 		return FAILURE;
+	close(el->get_fd());
 	delete el;
 	return SUCCESS;
 }

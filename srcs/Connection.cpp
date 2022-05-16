@@ -28,6 +28,10 @@ bool	Connection::send_and_close() {
 	size_t	found;
 
 	client = _data._client;
+	if (client->get_state() & ERROR) {
+		std::cout << "client error: %d" << client->get_state() << std::endl;
+		return true;
+	}
 	client->process_res();
 	found = client->raw_data.find("Connection : close");
 	if (found != std::string::npos)
@@ -38,14 +42,18 @@ bool	Connection::send_and_close() {
 int	Connection::retrieve_request() {
 	Client*	client;
 	char	buf[256];
+	int		state;
 	int		rlen;
 
 	client = _data._client;
 	while ((rlen = recv(_fd, buf, 255, 0)) > 0) {
 		buf[rlen] = 0;
 		client->process_req(buf);
+		state = client->get_state();
+		if ((state & ERROR) || (state & RESPONSE))
+			break ;
 	}
 	if (rlen == 0)
 		return DECONNECT;
-	return client->get_state();
+	return state;
 }

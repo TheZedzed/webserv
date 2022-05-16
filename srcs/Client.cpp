@@ -61,16 +61,15 @@ void	Client::process_res() {
 	const Location*	uri_loc;
 	str_t	route;
 
-	if (_state & ERROR) { // convert error during request time
+	if (_state & ERROR) { // error during request time
 		if (_state & ERR_400)
-			_state = 400;
+			raw_data += _response->code_response(NULL, 400);
 		else if (_state & ERR_404)
-			_state = 404;
+			raw_data += _response->code_response(NULL, 404);
 		else if (_state & ERR_505)
-			_state = 505;
+			raw_data += _response->code_response(NULL, 505);
 		else if (_state & ERR_501)
-			_state = 501;
-		raw_data += _response->code_response(NULL, _state);
+			raw_data += _response->code_response(NULL, 501);
 	}
 	else if (_request->get_body().size() > _response->get_server()->get_max())
 		raw_data += _response->code_response(NULL, 413);

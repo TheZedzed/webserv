@@ -16,12 +16,12 @@ HttpContext::~HttpContext()
 { delete _parser; }
 
 bool	HttpContext::_mod_client() {
-	const Server*	serv;
-	Client*	client;
+//	const Server*	serv;
+//	Client*	client;
 
-	client = peer->get_client();
-	serv = client->search_requested_domain();
-	client->set_response(new Response(serv, client->get_request()));
+//	client = peer->get_client();
+//	serv = client->search_requested_domain();
+//	client->set_response(new Response(serv, client->get_request()));
 	if (_multiplexer.mod_event(peer, EPOLLOUT) == FAILURE)
 		throw std::runtime_error("Failure epoll_mod\n");
 	return SUCCESS;
@@ -83,8 +83,10 @@ void	HttpContext::worker(void) {
 			if (new_connection() == true)
 				continue ;
 			if (events[i].events & EPOLLIN) {
-				if ((state = peer->retrieve_request()) == DECONNECT)
+				if ((state = peer->retrieve_request()) == DECONNECT) {
 					_del_client();
+					break ;
+				}
 				else if (state & RESPONSE || state & ERROR)
 					_mod_client();
 			}

@@ -41,11 +41,12 @@ class	Parser {
 		Parser(const Parser&);
 		Parser&	operator=(const Parser&);
 
-		bool		_getline(stream_t& in, str_t& buffer);
-		void		_fill_map(int flag);
-		bool		_server_block();
-		bool		_end_of_block();
-		void		_smart_map();
+		void	_new_node(const socket_t socket, Server* server);
+		void	_insert_any(const socket_t socket, Server* server);
+		bool	_getline(stream_t& in, str_t& buffer);
+		void	_fill_map(int flag);
+		bool	_server_block();
+		bool	_end_of_block();
 		socket_t	_lil_dns();
 
 		Server*			_curr_serv;

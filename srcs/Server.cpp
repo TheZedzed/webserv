@@ -62,29 +62,22 @@ void	Server::set_names(const strs_t& line) {
 void	Server::sanitize_sockets() {
 	sockets_t::iterator	it1;
 	sockets_t::iterator	it2;
-	sockets_t::iterator	ite;
+	sockets_t::iterator	it3;
 	sockets_t			curr;
 
 	curr = get_sockets();
 	std::sort(curr.begin(), curr.end());
 	it1 = curr.begin();
-	ite = curr.end();
-	for (; it1 != ite; ++it1) { // remove useless sockets
-		if (it1->first == "0.0.0.0") {
-			str_t port = it1->second;
+	it3 = curr.end();
+	for (; it1 != it3 && it1->first == "0.0.0.0"; ++it1) {
+		str_t port = it1->second;
 
-			it2 = it1 + 1;
-			while (it2 != ite) {
-				if (it2->second == port) {
-					curr.erase(it2);
-					ite = curr.end();
-				}
-				else
-					++it2;
+		for (it2 = it1 + 1; it2 != it3; ++it2) {
+			if (it2->second == port) {
+				curr.erase(it2);
+				it3 = curr.end();
 			}
 		}
-		else
-			break ;
 	}
 }
 
