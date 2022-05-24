@@ -36,7 +36,29 @@ bool	Response::_extract_content(const str_t* path) {
 	return SUCCESS;
 }
 
-void	Response::_set_header(int code, const str_t* redir) { // search how to format time like "Date: Fri, 22 Apr 2022 07:31:04 GMT"
+bool	Response::_extract_directory(const str_t& route) {
+	DIR *dp;
+	struct dirent *dirp;
+
+	if ((dp = opendir(route.c_str())) == NULL)
+		return FAILURE;
+	_buffer += "<html>\r\n<head><title>Index of " + route;
+	_buffer += "</title></head>\r\n<body>\r\n<h1>Index of " + route;
+	_buffer += "</h1>\r\n<hr><pre>\r\n<a href=\"../\">../</a>\r\n";
+	while ((dirp = readdir(dp)) != NULL) {
+		if (dirp->d_name[0] != '.') {
+			_buffer += "<a href=\"" + route + dirp->d_name;
+			_buffer += "\">";
+			_buffer += dirp->d_name;
+			_buffer += "</a>\r\n";
+		}
+	}
+	_buffer += "</pre><hr>\rn</body>\r\n</html>\r\n";
+	closedir(dp);
+	return SUCCESS;
+}
+
+void	Response::_set_header(int code, const str_t* redir) {
 	str_t	data;
 	str_t	time;
 
@@ -45,7 +67,7 @@ void	Response::_set_header(int code, const str_t* redir) { // search how to form
 	
 	data += "HTTP/1.1" + _itoa(code) + code_g[code] + CRLF;
 	data += "Server: " SERVER CRLF;
-	data += "Date: " + time + CRLF; // to do
+	data += "Date: " + time + CRLF;
 	data += "Content-Type: text/html" CRLF; // mimes_type
 	data += "Content-Length: " + _itoa(_buffer.size()) + CRLF;
 	if (redir)
@@ -59,32 +81,15 @@ void	Response::_set_header(int code, const str_t* redir) { // search how to form
 	_buffer = data;
 }
 
-void	Response::extract_directory(const str_t& route) {
-	struct dirent *dirp;
-
-	_buffer += "<html>\r\n<head><title>Index of " + route;
-	_buffer += "</title></head>\r\n<body>\r\n<h1>Index of " + route;
-	_buffer += "</h1>\r\n<hr><pre>\r\n<a href=\"../\">../</a>\r\n";
-	while ((dirp = readdir(dp)) != NULL) {
-		if (dirp->d_reclen > 1 && dirp->d_name[0] != '.') {
-			_buffer += "<a href=\"" + route + dirp->d_name;
-			_buffer += "\">";
-			_buffer += dirp->d_name;
-			_buffer += "</a>\r\n";
-		}
-	}
-		_buffer += "</pre><hr>\rn</body>\r\n</html>\r\n";
-}
 void	Response::process_get(const Location* uri_loc, const str_t& route) {
-	DIR *dp;
+	bool	autoindex;
 
+	autoindex = uri_loc->get_autoindex();
 	if (*route.rbegin() == '/') {
-		if (uri_loc->get_autoindex() == false)
+		if (autoindex == false)
 			return error_response(ERR_403);
-		if ((dp = opendir(route.c_str())) == NULL)
-			return error_response(500);
-		
-		closedir(dp);
+		if (_extract_directory(route) == FAILURE)
+			return error_response(ERR_500);
 	}
 	else if (_extract_content(&route) == FAILURE)
 		return error_response(500);
