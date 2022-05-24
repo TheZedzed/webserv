@@ -25,12 +25,16 @@ void	Client::set_request(Request* request)
 { _request = request; }
 
 const Server*	Client::search_requested_domain() const {
-	servers_t::const_iterator	it1;
-	strs_t::const_iterator		it2;
-	str_t	match;
+	servers_t::const_iterator			it1;
+	strs_t::const_iterator				it2;
+	str_t								match;
+	Request::fields_t::const_iterator	res;
 
 	it1 = _servers.begin();
-	match = _request->get_headers().find("host")->second;
+	res = _request->get_headers().find("host");
+	if (res == _request->get_headers().end())
+		return NULL;
+	match = res->second;
 	for (; it1 != _servers.end(); ++it1) {
 		it2 = (*it1)->get_names().begin();
 		for (; it2 != (*it1)->get_names().end(); ++it2) {
@@ -53,30 +57,50 @@ void	Client::process_req(const str_t& raw_received) {
 		_state = _request->process_body(raw_data);
 }
 
+bool	Client::_request_time_error() {
+	str_t	body;
+	size_t	max;
+	bool	err;
+
+	err = false;
+	body = _request->get_body();
+	max = _response->get_server()->get_max();
+	if ((_state & ERROR) && (err = true))
+		_response->error_response(_state & ~ERROR);
+	else if (body.size() > max && (err = true))
+		_response->error_response(413);
+	return err;
+}
+
+bool	Client::_request_route_error(const Location* uri_loc, str_t& route) {
+	struct stat	st;
+	bool		err;
+	int			res;
+
+	err = true;
+	uri_loc = _response->construct_route(route);
+	res = stat(route.c_str(), &st);
+	if (!uri_loc || res == -1) // to do: check specific error errno
+		_response->error_response(404);
+	else if (route.size() > 256)
+		_response->error_response(414);
+	else
+		err = false;
+	return err;
+}
+
 /*
-** TODO: format header in last
+** to do: format header in last
 ** process action
 */
 void	Client::process_res() {
 	const Location*	uri_loc;
 	str_t	route;
 
-	if (_state & ERROR) { // error during request time
-		if (_state & ERR_400)
-			raw_data += _response->code_response(NULL, 400);
-		else if (_state & ERR_404)
-			raw_data += _response->code_response(NULL, 404);
-		else if (_state & ERR_505)
-			raw_data += _response->code_response(NULL, 505);
-		else if (_state & ERR_501)
-			raw_data += _response->code_response(NULL, 501);
-	}
-	else if (_request->get_body().size() > _response->get_server()->get_max())
-		raw_data += _response->code_response(NULL, 413);
-	else if ((uri_loc = _response->construct_route(route)) == NULL)
-		raw_data += _response->code_response(uri_loc, 404);
-	else if (route.size() > 256)
-		raw_data += _response->code_response(uri_loc, 414);
-	else
-		raw_data += _response->process_method(uri_loc, route);
+	uri_loc = NULL;
+	if (_request_time_error() == true) // error during request time
+		return ;
+	if (_request_route_error(uri_loc, route) == true) // error with URI
+		return ;
+	_response->process_method(uri_loc, route);	
 }

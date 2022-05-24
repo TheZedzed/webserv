@@ -12,31 +12,29 @@
 */
 class	Response {
 	public:
-		Response(const Server* server, const Request* request);
+		Response(const Server* server, const Request* request, str_t& raw);
 		~Response();
 
 		int	get_code() const;
 		const Server*	get_server() const;
 
-		str_t	code_response(const Location* uri_loc, int code) const;
-		str_t	process_method(const Location* uri_loc, const str_t& route) const;
 		const Location*	construct_route(str_t& route) const;
+		void	error_response(int code, const str_t* redir = NULL);
+		void	process_method(const Location* uri_loc, const str_t& route);
+		void	process_post(const Location* uri_loc, const str_t& route);
+		void	process_delete(const Location* uri_loc, const str_t& route);
+		void	process_get(const Location* uri_loc, const str_t& route);
 
 	private:
 		Response();
 		Response(const Response&);
 		Response&	operator=(const Response&);
 
-		str_t	_process_post(const Location* uri_loc) const;
-		str_t	_process_delete(const Location* uri_loc) const;
-		str_t	_process_get(const Location* uri_loc, bool is_dir) const;
+		void	_set_header(int code, const str_t* redir = NULL);
+		bool	_method_allowed(const Location* uri_loc, const str_t& method) const;
+		bool	_extract_content(const str_t* path);
 
-		void	_set_header(str_t& buffer, int code) const; // header for error or success
-		void	_set_header(str_t& buffer, const str_t& redir) const; // header for redir
-
-		str_t	_method_in_route(const Location* uri_loc) const;
-		str_t	_extract_page(int& code, const str_t* path) const;
-
+		str_t&			_buffer;
 		const Server*	_server;
 		const Request*	_request;
 };

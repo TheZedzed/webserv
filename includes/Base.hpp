@@ -17,6 +17,7 @@
 # include <fstream>
 # include <sstream>
 # include <errno.h>
+# include <sys/stat.h>
 
 # include <iostream>
 # include <cstring>
@@ -34,6 +35,7 @@
 # define CRLF "\r\n"
 
 # define SERVER "webserv"
+# define INDEX_DFT "/home/user/webserve/html/"
 
 # define CLIENT 1
 # define LISTENNER 0
@@ -47,11 +49,15 @@
 # define ERROR		0x00000040 // error handler
 # define DECONNECT	0x00000080 // client deco
 
-/* error during request time (recv) */
-# define ERR_400	0X00000100 // BAD REQUEST
-# define ERR_404	0X00000200 // NOT FOUND
-# define ERR_501	0X00000400 // NOT IMPLEMENTED
-# define ERR_505	0X00000800 // BAD HTTP VERSION
+# define ERR_400	0X00000100
+# define ERR_403	0X00000200
+# define ERR_404	0X00000400
+# define ERR_405	0X00000800
+# define ERR_413	0X00001000
+# define ERR_414	0X00002000
+# define ERR_500	0X00004000
+# define ERR_501	0X00008000
+# define ERR_505	0X00010000
 
 typedef std::string					str_t;
 typedef std::vector<str_t>			strs_t;

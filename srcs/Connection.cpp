@@ -28,12 +28,9 @@ bool	Connection::send_and_close() {
 	size_t	found;
 
 	client = _data._client;
-	if (client->get_state() & ERROR) {
-		std::cout << "client error: %d" << client->get_state() << std::endl;
-		return true;
-	}
 	client->process_res();
-	found = client->raw_data.find("Connection : close");
+	send(_fd, client->raw_data.c_str(), sizeof(get_client()->raw_data.c_str()), 0); // check error send + 
+	found = client->raw_data.find("connection : close");
 	if (found != std::string::npos)
 		return true;
 	return false;

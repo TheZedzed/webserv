@@ -37,15 +37,15 @@ void	_init_error_pages() {
 void status_msgs() {
 	code_g[200] = "OK"; // ok
 	code_g[301] = "Moved Permanently"; // ok
-	code_g[400] = "Bad Request"; // ok
-	code_g[403] = "Forbidden"; // ok
-	code_g[404] = "Not Found"; // ok
-	code_g[405] = "Method Not Allowed"; // ok
-	code_g[413] = "Payload Too Large"; // ok
-	code_g[414] = "URI Too Long"; // ok
-	code_g[500] = "Internal Server Error"; // ok
-	code_g[501] = "Not Implemented"; // ok
-	code_g[505] = "HTTP Version Not Supported"; // ok
+	code_g[ERR_400] = "Bad Request"; // ok
+	code_g[ERR_403] = "Forbidden"; // ok
+	code_g[ERR_404] = "Not Found"; // ok
+	code_g[ERR_405] = "Method Not Allowed"; // ok
+	code_g[ERR_413] = "Payload Too Large"; //ERR_ ok
+	code_g[ERR_414] = "URI Too Long"; // ok
+	code_g[ERR_500] = "Internal Server Error"; // ok
+	code_g[ERR_501] = "Not Implemented"; // ok
+	code_g[ERR_505] = "HTTP Version Not Supported"; // ok
 }
 
 void default_pages() {
@@ -138,9 +138,3 @@ void default_pages() {
 	"</body>" CRLF
 	"</html>";
 }
-
-str_t&	get_status(int nb)
-{ return code_g[nb]; }
-
-str_t&	get_page_g(int code_g)
-{ return page_g[code_g]; }

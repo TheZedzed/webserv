@@ -10,18 +10,19 @@ HttpContext::HttpContext(const char* conf_file) {
 		throw std::runtime_error("Failed init multiplexing");
 	if (_multiplexer.start_listenning() == FAILURE)
 		throw std::runtime_error("Failed up servers");
+	_init_error_pages();
 }
 
 HttpContext::~HttpContext()
 { delete _parser; }
 
 bool	HttpContext::_mod_client() {
-//	const Server*	serv;
-//	Client*	client;
+	const Server*	serv;
+	Client*			client;
 
-//	client = peer->get_client();
-//	serv = client->search_requested_domain();
-//	client->set_response(new Response(serv, client->get_request()));
+	client = peer->get_client();
+	serv = client->search_requested_domain();
+	client->set_response(new Response(serv, client->get_request(), client->raw_data));
 	if (_multiplexer.mod_event(peer, EPOLLOUT) == FAILURE)
 		throw std::runtime_error("Failure epoll_mod\n");
 	return SUCCESS;
