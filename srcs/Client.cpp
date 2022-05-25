@@ -1,5 +1,27 @@
 #include "Client.hpp"
 
+static int	_translate(int hex) {
+	if (hex == ERR_400)
+		return 400;
+	if (hex == ERR_403)
+		return 403;
+	if (hex == ERR_404)
+		return 404;
+	if (hex == ERR_405)
+		return 405;
+	if (hex == ERR_411)
+		return 411;
+	if (hex == ERR_413)
+		return 413;
+	if (hex == ERR_414)
+		return 414;
+	if (hex == ERR_500)
+		return 500;
+	if (hex == ERR_501)
+		return 501;
+	return 505;
+}
+
 Client::Client(const servers_t& serv) : _state(RQLINE), _request(), _response(), _servers(serv)
 { std::cout << "Create new client!" << std::endl; }
 
@@ -64,9 +86,12 @@ bool	Client::_request_time_error() {
 
 	err = false;
 	body = _request->get_body();
-	max = _response->get_server()->get_max();
+	if (_response->get_server())
+		max = _response->get_server()->get_max();
+	else
+		max = 4096;
 	if ((_state & ERROR) && (err = true))
-		_response->error_response(_state & ~ERROR);
+		_response->error_response(_translate(_state & ~ERROR));
 	else if (body.size() > max && (err = true))
 		_response->error_response(413);
 	return err;
@@ -86,13 +111,13 @@ void	Client::process_res() {
 	uri_loc = _response->construct_route(route);
 	if (stat(route.c_str(), &st) == -1) {
 		if (errno == EACCES)
-			_response->error_response(ERR_403);
+			_response->error_response(403);
 		else if (errno == ENAMETOOLONG)
-			_response->error_response(ERR_414);
+			_response->error_response(414);
 		else if (errno == ENOENT)
-			_response->error_response(ERR_404);
+			_response->error_response(404);
 		else
-			_response->error_response(ERR_500);
+			_response->error_response(500);
 	}
 	else {
 		if ((st.st_mode & S_IFMT) == S_IFDIR && *route.rbegin() != '/')

@@ -103,7 +103,7 @@ int	Request::process_head(str_t& raw_data) {
 
 	do {
 		limit = raw_data.find(LF);
-		if (limit == 0) { // end of line headers
+		if (limit == 0 || (limit == 1 && raw_data[0] == CR)) { // end of line headers
 			raw_data.erase(0, limit + 1);
 			return _headers_checker();
 		}

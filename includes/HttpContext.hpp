@@ -25,7 +25,6 @@ class	HttpContext {
 
 
 		void	worker(); // events loop
-		void	manage_event(int id); // manage event
 		bool	new_connection(); // manage new connection
 		bool	handle_request(); // manage received data
 		bool	handle_response(); // send data

@@ -36,24 +36,25 @@ bool	Response::_extract_content(const str_t* path) {
 	return SUCCESS;
 }
 
-bool	Response::_extract_directory(const str_t& route) {
+bool	Response::_extract_directory(const str_t& route, const str_t& subroute) {
 	DIR *dp;
 	struct dirent *dirp;
 
 	if ((dp = opendir(route.c_str())) == NULL)
 		return FAILURE;
-	_buffer += "<html>\r\n<head><title>Index of " + route;
-	_buffer += "</title></head>\r\n<body>\r\n<h1>Index of " + route;
-	_buffer += "</h1>\r\n<hr><pre>\r\n<a href=\"../\">../</a>\r\n";
+	_buffer += "<html>\n<head><title>Index of " + route;
+	_buffer += "</title></head>\n<body>\n<h1>Index of " + route;
+	_buffer += "</h1>\n<hr><pre>\n<a href=\"../\">../</a>\n";
 	while ((dirp = readdir(dp)) != NULL) {
 		if (dirp->d_name[0] != '.') {
-			_buffer += "<a href=\"" + route + dirp->d_name;
+			_buffer += "<a href=\"";
+			_buffer += subroute + dirp->d_name;
 			_buffer += "\">";
 			_buffer += dirp->d_name;
-			_buffer += "</a>\r\n";
+			_buffer += "</a>\n";
 		}
 	}
-	_buffer += "</pre><hr>\rn</body>\r\n</html>\r\n";
+	_buffer += "</pre><hr>\r\n</body>\n</html>\n";
 	closedir(dp);
 	return SUCCESS;
 }
@@ -64,11 +65,11 @@ void	Response::_set_header(int code, const str_t* redir) {
 
 	std::time_t fetch_time = std::time(NULL);
 	time = std::asctime(std::localtime(&fetch_time));
-	
-	data += "HTTP/1.1" + _itoa(code) + code_g[code] + CRLF;
+	*time.rbegin() = CR;
+	data += "HTTP/1.1 " + _itoa(code) + " " + code_g[code] + CRLF;
 	data += "Server: " SERVER CRLF;
-	data += "Date: " + time + CRLF;
-	data += "Content-Type: text/html" CRLF; // mimes_type
+	data += "Date: " + time;
+	data += "\nContent-Type: text/html" CRLF; // mimes_type
 	data += "Content-Length: " + _itoa(_buffer.size()) + CRLF;
 	if (redir)
 		data += "Location: " + (*redir) + CRLF;
@@ -83,13 +84,15 @@ void	Response::_set_header(int code, const str_t* redir) {
 
 void	Response::process_get(const Location* uri_loc, const str_t& route) {
 	bool	autoindex;
+	str_t	subroute;
 
+	subroute = route.substr(uri_loc->get_root().size());
 	autoindex = uri_loc->get_autoindex();
 	if (*route.rbegin() == '/') {
 		if (autoindex == false)
-			return error_response(ERR_403);
-		if (_extract_directory(route) == FAILURE)
-			return error_response(ERR_500);
+			return error_response(403);
+		if (_extract_directory(route, subroute) == FAILURE)
+			return error_response(500);
 	}
 	else if (_extract_content(&route) == FAILURE)
 		return error_response(500);
@@ -103,11 +106,11 @@ void	Response::process_delete(const Location* uri_loc, const str_t& route) {
 
 void	Response::process_post(const Location* uri_loc, const str_t& route) {
 	if (uri_loc->get_cgi().empty())
-		return error_response(ERR_500);
+		return error_response(500);
 	(void)route;
 }
 
-void	Response::error_response(int code, const str_t* redir) {
+void	Response::error_response(int code) {
 	Server::pages_t::const_iterator	it;
 
 	_buffer.clear();
@@ -120,8 +123,8 @@ void	Response::error_response(int code, const str_t* redir) {
 	}
 	if (_buffer.empty())
 		_buffer += page_g[code];
-	if (_request->get_rl()[2].substr(0, 5) == "HTTP/")
-		_set_header(code, redir);
+	if (_request->get_rl().size() == 3 && _request->get_rl()[2].substr(0, 5) == "HTTP/")
+		_set_header(code);
 }
 
 /*
@@ -131,13 +134,13 @@ void	Response::error_response(int code, const str_t* redir) {
 const Location*	Response::construct_route(str_t& route) const {
 	Server::route_t::const_iterator it;
 	str_t	path;
-	size_t	pos; 
+	size_t	pos;
 
 	pos = std::string::npos;
 	path = _request->get_rl()[1];
 	do {
 		pos = path.find_last_of('/', pos);
-		it = get_server()->get_routes().find(path.substr(0, pos));
+		it = get_server()->get_routes().find(path.substr(0, pos + 1));
 		if (it != get_server()->get_routes().end()) {
 			route = it->second->get_root() + path.substr(pos + 1); // to do: test si root fini /
 			return it->second;
@@ -149,12 +152,17 @@ const Location*	Response::construct_route(str_t& route) const {
 
 void	Response::process_method(const Location* uri_loc, const str_t& route) {
 	str_t	method;
+	bool	redir;
 
 	method = _request->get_rl()[0];
+	redir = uri_loc->get_redir().first != -1 ? true : false;
 	if (_method_allowed(uri_loc, method) == false)
-		error_response(ERR_405);
-	else if (uri_loc->get_redir().first != -1)
-		error_response(301, &(uri_loc->get_redir().second));
+		error_response(405);
+	else if (redir == true) {
+		if (_extract_content(&uri_loc->get_redir().second) == FAILURE)
+			return error_response(404);
+		_set_header(301, &uri_loc->get_redir().second);
+	}
 	else if (method == "POST")
 		process_post(uri_loc, route);
 	else if (method == "GET")

@@ -58,6 +58,7 @@
 # define ERR_500	0X00004000
 # define ERR_501	0X00008000
 # define ERR_505	0X00010000
+# define ERR_411	0X00020000
 
 typedef std::string					str_t;
 typedef std::vector<str_t>			strs_t;

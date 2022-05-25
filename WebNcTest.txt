@@ -19,7 +19,7 @@ timedout: 65s (nginx default) -> close connexion
 
 		-------	error HTTP 400 -------------
 
-	GET\r\n ->	HTTP/1.1 400 Bad Request
+	GET\n ->	HTTP/1.1 400 Bad Request
 			Server: nginx/1.20.2
 			Date: Fri, 22 Apr 2022 05:16:21 GMT
 			Content-type: text/html
@@ -35,7 +35,7 @@ timedout: 65s (nginx default) -> close connexion
 		------- bad method || bad URI ---------
 		     ----- error HTTP 400 -----
 
-	GEt ddd cczczc\r\n ->	HTTP/1.1 400 Bad Request
+	GEt ddd cczczc\n ->	HTTP/1.1 400 Bad Request
 				Server: nginx/1.20.2
 				Date: Fri, 22 Apr 2022 07:07:37 GMT
 				Content-Type: text/html
@@ -54,19 +54,19 @@ timedout: 65s (nginx default) -> close connexion
 		      ------ good method -------- (start with /)
 		      ----- error 404 dft -------
 
-	GET / DZFZ\r\n ->	Body response (404 Not found)
+	GET / DZFZ\n ->	Body response (404 Not found)
 				Connection: close
 
 		     ------ wrong method -------
 		     ----- error 400 dft -------
 
-	GE /a ZDZDZDZ\r\n ->	Body response (400 Bad Request)
+	GE /a ZDZDZDZ\n ->	Body response (400 Bad Request)
 				Connection: close
 
 		------- wrong version: HTTP/... --------
 		     ----- error HTTP 505 -----
 
-	GET / HTTP/12\r\n ->	HTTP/1.1 505 HTTP Version Not Supported
+	GET / HTTP/12\n ->	HTTP/1.1 505 HTTP Version Not Supported
 				Server: nginx/1.20.2
 				Date: Fri, 22 Apr 2022 05:35:27 GMT
 				Content-Type: text/html
@@ -80,8 +80,8 @@ timedout: 65s (nginx default) -> close connexion
 		------------- bad Host ---------------
 		     ----- error HTTP 400 -----
 
-	GE / HTTP/1.1\r\n ->	HTTP/1.1 400 Bad Request
-	\r\n			Server: nginx/1.20.2
+	GE / HTTP/1.1\n ->	HTTP/1.1 400 Bad Request
+	\n			Server: nginx/1.20.2
 				Date: Fri, 22 Apr 2022 05:16:21 GMT
 				Content-type: text/html
 				Content-Length: 157
@@ -94,8 +94,8 @@ timedout: 65s (nginx default) -> close connexion
 		------ (method + route) forbidden ------
 		     ----- error HTTP 405 -----
 
-	GE / HTTP/1.1\r\n ->	HTTP/1.1 405 Not Allowed
-	Host: zzz\r\n		Server: nginx/1.20.2
+	GE / HTTP/1.1\n ->	HTTP/1.1 405 Not Allowed
+	Host: zzz\n		Server: nginx/1.20.2
 				Date: Fri, 22 Apr 2022 05:16:21 GMT
 				Content-type: text/html
 				Content-Length: 157
@@ -146,7 +146,7 @@ timedout: 65s (nginx default) -> close connexion
 			Connection: keep-alive
 
 	/**************************************************************/
-	
+
 /*******************************************************************************************/
 
 

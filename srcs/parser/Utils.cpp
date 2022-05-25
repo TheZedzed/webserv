@@ -37,15 +37,16 @@ void	_init_error_pages() {
 void status_msgs() {
 	code_g[200] = "OK"; // ok
 	code_g[301] = "Moved Permanently"; // ok
-	code_g[ERR_400] = "Bad Request"; // ok
-	code_g[ERR_403] = "Forbidden"; // ok
-	code_g[ERR_404] = "Not Found"; // ok
-	code_g[ERR_405] = "Method Not Allowed"; // ok
-	code_g[ERR_413] = "Payload Too Large"; // ok
-	code_g[ERR_414] = "URI Too Long"; // ok
-	code_g[ERR_500] = "Internal Server Error"; // ok
-	code_g[ERR_501] = "Not Implemented"; // ok
-	code_g[ERR_505] = "HTTP Version Not Supported"; // ok
+	code_g[400] = "Bad Request"; // ok
+	code_g[403] = "Forbidden"; // ok
+	code_g[404] = "Not Found"; // ok
+	code_g[405] = "Method Not Allowed"; // ok
+	code_g[411] = "Length Required"; // ok
+	code_g[413] = "Payload Too Large"; // ok
+	code_g[414] = "URI Too Long"; // ok
+	code_g[500] = "Internal Server Error"; // ok
+	code_g[501] = "Not Implemented"; // ok
+	code_g[505] = "HTTP Version Not Supported"; // ok
 }
 
 void default_pages() {
@@ -89,6 +90,15 @@ void default_pages() {
 	"<head><title>405 Method Not Allowed</title></head>" CRLF
 	"<body>" CRLF
 	"<center><h1>405 Method Not Allowed</h1></center>" CRLF
+	"<hr><center>" SERVER "</center>" CRLF
+	"</body>" CRLF
+	"</html>";
+
+	page_g[411] =
+	"<html>" CRLF
+	"<head><title>411 Length Required</title></head>" CRLF
+	"<body>" CRLF
+	"<center><h1>411 Length Required</h1></center>" CRLF
 	"<hr><center>" SERVER "</center>" CRLF
 	"</body>" CRLF
 	"</html>";

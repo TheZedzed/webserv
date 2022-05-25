@@ -25,15 +25,15 @@ Client*	Connection::get_client()
 
 bool	Connection::send_and_close() {
 	Client*	client;
-	size_t	found;
+	//size_t	found;
 
 	client = _data._client;
 	client->process_res();
-	send(_fd, client->raw_data.c_str(), sizeof(get_client()->raw_data.c_str()), 0); // check error send + 
-	found = client->raw_data.find("connection : close");
-	if (found != std::string::npos)
+	send(_fd, client->raw_data.c_str(), client->raw_data.size(), 0); // check error send +
+	//found = client->raw_data.find("Connection : close");
+	//if (found != std::string::npos)
 		return true;
-	return false;
+	//return false;
 }
 
 int	Connection::retrieve_request() {
