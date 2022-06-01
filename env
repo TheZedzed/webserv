@@ -1,0 +1,12 @@
+export REQUEST_METHOD="POST"
+export CONTENT_TYPE="application/x-www-form-urlencoded"
+export HTTP_COOKIE=""
+export CONTENT_LENGTH="32"
+export QUERY_STRING=""
+export PATH_INFO="submit.php"
+export DOCUMENT_URI="submit.php"
+export REQUEST_URI="submit.php?"
+export PATH_TRANSLATED="/home/tombanks/Desktop/42/webserv/www/form/submit.php"
+export SCRIPT_NAME="/home/tombanks/Desktop/42/webserv/www/form/submit.php"
+export SCRIPT_FILENAME="/home/tombanks/Desktop/42/webserv/www/form/submit.php"
+

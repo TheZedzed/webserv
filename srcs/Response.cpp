@@ -40,6 +40,7 @@ bool	Response::_extract_directory(const str_t& route, const str_t& subroute) {
 	DIR *dp;
 	struct dirent *dirp;
 
+	std::cout << "route: " << route << "\nsubroute: " << subroute << "\n";
 	if ((dp = opendir(route.c_str())) == NULL)
 		return FAILURE;
 	_buffer += "<html>\n<head><title>Index of " + route;
@@ -86,7 +87,7 @@ void	Response::process_get(const Location* uri_loc, const str_t& route) {
 	bool	autoindex;
 	str_t	subroute;
 
-	subroute = route.substr(uri_loc->get_root().size());
+	subroute = route.substr(uri_loc->get_root().size() - 1);
 	autoindex = uri_loc->get_autoindex();
 	if (*route.rbegin() == '/') {
 		if (autoindex == false)
@@ -104,9 +105,88 @@ void	Response::process_delete(const Location* uri_loc, const str_t& route) {
 	(void)route;
 }
 
+void	add_string_to_envp(std::vector<const char*>&env, std::string str)
+{
+	env.push_back(str.c_str());
+}
+
 void	Response::process_post(const Location* uri_loc, const str_t& route) {
+	std::vector<const char *>	env;
+	Request::fields_t::const_iterator	it;
+
+	env.push_back("REQUEST_METHOD=POST");
+
+	str_t content_type = "CONTENT_TYPE=";
+	it = _request->get_headers().find("content-type");
+	it != _request->get_headers().end() ? content_type += it->second : "";
+	env.push_back(content_type.c_str());
+
+	str_t cookie = "HTTP_COOKIE=";
+	it = _request->get_headers().find("cookie");
+	it != _request->get_headers().end() ? cookie += it->second : "";
+	env.push_back(cookie.c_str());
+
+	str_t length = "CONTENT_LENGTH=";
+	it = _request->get_headers().find("content-length");
+	it != _request->get_headers().end() ? length += it->second : "";
+	env.push_back(length.c_str());
+
+	size_t	found = _request->get_rl()[1].find('?');
+	str_t	uri;
+	str_t 	query;
+	str_t	query_string;
+	str_t	path_info;
+	str_t	document_uri;
+	str_t	request_uri;
+	str_t	path_translated;
+	str_t	script_filename;
+	str_t	script_name;
+
+	if (found == std::string::npos) {
+		uri += _request->get_rl()[1].substr(_request->get_rl()[1].find_last_of('/'));
+	}
+	else {
+		uri += _request->get_rl()[1].substr(_request->get_rl()[1].find_last_of('/'), found);
+		query += uri.substr(found);
+	}
+	uri = uri.substr(1);
+	query_string = "QUERY_STRING=" + query;
+	env.push_back(query_string.c_str());
+	path_info = "PATH_INFO=" + uri;
+	env.push_back(path_info.c_str());
+	document_uri = "DOCUMENT_URI=" + uri;
+	env.push_back(document_uri.c_str());
+	request_uri = "REQUEST_URI=" + uri + "?" + query;
+	env.push_back(request_uri.c_str());
+
+	path_translated = "PATH_TRANSLATED=" + route;
+	env.push_back(path_translated.c_str());
+	script_name = "SCRIPT_NAME=" + route;
+	env.push_back(script_name.c_str());
+	script_filename = "SCRIPT_FILENAME=" + route;
+	env.push_back(script_filename.c_str());
+	env.push_back("PWD=/home/zedzed/webserv");
+	env.push_back("PATH=/home/zedzed/.cargo/bin:/home/zedzed/.local/bin:/home/zedzed/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin");
+	const char *argv [] = {"cgi", "/home/zedzed/webserv/www/form/submit.php", NULL};
+	int	fd = open("/tmp/infile", O_WRONLY | O_CREAT, 0644);
+	write(fd, _request->get_body().c_str(), _request->get_body().size());
+	close(fd);
+	fd = open("/tmp/infile", O_RDONLY);
+	pid_t pid = fork();
+	if (pid == -1)
+		exit(0);
+	else if (pid == 0)
+	{
+		if (dup2(fd, STDIN_FILENO) == -1)
+			std::cout << "error\n";
+		execve("/usr/bin/php-cgi", (char**)argv, (char**)(env.begin().base()));
+		printf("error\n");
+		exit(1);
+	}
+	close(fd);
+	wait(0);
 	if (uri_loc->get_cgi().empty())
-		return error_response(500);
+		error_response(501);
 	(void)route;
 }
 

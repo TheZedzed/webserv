@@ -128,11 +128,10 @@ int	Request::process_body(str_t& raw_data) {
 	if (!_chunked) {
 		it = _headers.find("content-length");
 		len = _atoi(it->second, 10);
-		if (_body.size() < len) {
-			_body.append(raw_data);
-			raw_data.clear();
+		_body.append(raw_data);
+		raw_data.clear();
+		if (_body.size() < len)
 			return BODY;
-		}
 		return RESPONSE;
 	}
 	return process_chunk(raw_data);

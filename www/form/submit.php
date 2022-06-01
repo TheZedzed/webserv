@@ -16,7 +16,7 @@
 			text-align: center;
 			width: 50%;
 			margin: auto;
-			background-color: lightgrey; 
+			background-color: lightgrey;
 			border-radius: 6px;
 			box-shadow: 3px 3px white;
 		}
@@ -32,15 +32,19 @@
 	<div id="form">
 		<form method="post" action="submit.php">
 			<input name="feild_one" placeholder="Input feild one...."></br>
-			<input name="feild_one" placeholder="Input feild two...."></br>
+			<input name="feild_two" placeholder="Input feild two...."></br>
 			<button type="submit">Submit</button></br>
 		</form>
 	</div>
-	<?php 
+	<?php
+		if ($_SERVER["REQUEST_METHOD"] == "POST") {
+			print_r($_POST);
+			print_r($_ENV);
+		}
 		if (isset($_POST['feild_one']) && isset($_POST['feild_two'])) {
 			echo("Feild one = " . htmlspecialchars($_POST['feild_one']));
 			echo("Feild two = " . htmlspecialchars($_POST['feild_two']));
-			setcookie(string "CooKi3");
+			//setcookie(string "CooKi3");
 		}
 		if (isset($_COOKIE['cookie_value']))
 			echo("Cookie value = " . htmlspecialchars($_COOKIE['cookie_value']))

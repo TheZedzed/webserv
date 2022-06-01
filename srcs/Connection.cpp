@@ -32,7 +32,7 @@ bool	Connection::send_and_close() {
 	send(_fd, client->raw_data.c_str(), client->raw_data.size(), 0); // check error send +
 	//found = client->raw_data.find("Connection : close");
 	//if (found != std::string::npos)
-		return true;
+	return true;
 	//return false;
 }
 
