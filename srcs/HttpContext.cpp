@@ -16,6 +16,15 @@ HttpContext::HttpContext(const char* conf_file) {
 HttpContext::~HttpContext()
 { delete _parser; }
 
+void	HttpContext::timeout(timer_t* timerid) {
+	timers_t::const_iterator	it;
+
+	std::cout<< "Connection timeout!" << std::endl;
+	it = _timers.find(*timerid);
+	peer = it->second;
+	_del_client();
+}
+
 bool	HttpContext::_mod_client() {
 	const Server*	serv;
 	Client*			client;
@@ -30,6 +39,8 @@ bool	HttpContext::_mod_client() {
 
 bool	HttpContext::_del_client() {
 	std::cout << "Client deleted from epoll!" << std::endl;
+	if (timer_delete(peer->get_timer()) == -1)
+		throw std::logic_error("Failure delete timer");
 	if (_multiplexer.del_event(peer) == FAILURE)
 		throw std::runtime_error("Failure epoll_del\n");
 	return SUCCESS;
@@ -42,9 +53,11 @@ bool	HttpContext::_add_client(int fd) {
 	client = new Client(peer->get_servers());
 	client->set_request(new Request());
 	connex = new Connection(fd, CLIENT, client);
+	_timers.insert(std::make_pair(connex->get_timer(), connex));
 	_multiplexer.get_events().insert(std::make_pair(fd, connex));
 	if (_multiplexer.add_event(connex, EPOLLIN | EPOLLET) == FAILURE)
 		throw std::runtime_error("Failure epoll_add\n");
+	connex->arm_timer();
 	return SUCCESS;
 }
 
@@ -56,9 +69,8 @@ bool	HttpContext::new_connection() {
 	size = sizeof(addr);
 	bzero(&addr, size);
 	if (peer->get_type() == LISTENNER) {
-		while ((fd = accept(peer->get_fd(), (sockaddr *)&addr, &size)) > 0) {
+		while ((fd = accept(peer->get_fd(), reinterpret_cast<sockaddr *>(&addr), &size)) > 0)
 			_add_client(fd);
-		}
 		if (fd == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
 			throw std::runtime_error("Failure accept\n");
 		return true;
@@ -78,16 +90,15 @@ void	HttpContext::worker(void) {
 
 	while (1) {
 		if ((nfds = epoll_wait(epoll, events, 256, 1000)) < 0)
-			throw std::runtime_error("Failure epoll_wait\n");
+			continue ;
 		for (int i = 0; i < nfds; ++i) {
 			peer = reinterpret_cast<Connection*>(events[i].data.ptr);
 			if (new_connection() == true)
 				continue ;
 			if (events[i].events & EPOLLIN) {
-				if ((state = peer->retrieve_request()) == DECONNECT) {
+				state = peer->retrieve_request();
+				if (state == DECONNECT)
 					_del_client();
-					break ;
-				}
 				else if (state & RESPONSE || state & ERROR)
 					_mod_client();
 			}

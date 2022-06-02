@@ -2,20 +2,40 @@
 
 static HttpContext	*webserver;
 
-static void	handler(int signum) {
-	if (signum == SIGQUIT) {
+static void	handler(int signum, siginfo_t *info, void* context) {
+	(void)context;
+
+	if (signum == SIGINT || signum == SIGTSTP)
+		signal(signum, SIG_IGN);
+	else if (signum == SIGALRM)
+		webserver->timeout((timer_t*)info->si_value.sival_ptr);
+	else {
 		delete webserver;
 		exit(128 + SIGQUIT);
 	}
 }
 
+static void	init(int ac) {
+	struct sigaction	sigg;
+
+	bzero(&sigg, sizeof(struct sigaction));
+	sigg.sa_flags = SA_SIGINFO;
+	sigg.sa_sigaction = &handler;
+	if (sigaction(SIGQUIT, &sigg, NULL) == -1)
+		throw std::logic_error("Error sigaction!");
+	if (sigaction(SIGINT, &sigg, NULL) == -1)
+		throw std::logic_error("Error sigaction!");
+	if (sigaction(SIGTSTP, &sigg, NULL) == -1)
+		throw std::logic_error("Error sigaction!");
+	if (sigaction(SIGALRM, &sigg, NULL) == -1)
+		throw std::logic_error("Error sigaction!");
+	if (ac > 2)
+		throw std::logic_error("Usage: ./webserv [config_file]");
+}
+
 int	main(int ac, char **av) {
-	signal(SIGQUIT, handler);
-	signal(SIGINT, SIG_IGN);
-	signal(SIGTSTP, SIG_IGN);
 	try {
-		if (ac > 2)
-			throw std::logic_error("Usage: ./webserve [config_file]");
+		init(ac);
 		webserver = new HttpContext(ac == 1 ? "ez.conf" : av[1]);
 		webserver->worker();
 	}
