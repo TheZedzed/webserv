@@ -4,6 +4,7 @@ Connection::Connection(int fd, int type, Client* client) : _fd(fd), _type(type) 
 	_data._client = client;
 	if (create_timer() == FAILURE)
 		throw std::runtime_error("Failure timer create\n");
+	arm_timer();
 }
 
 Connection::Connection(int fd, int type, const servers_t& servers) : _fd(fd), _type(type)
@@ -59,7 +60,7 @@ bool	Connection::send_and_close() {
 	client = _data._client;
 	client->process_res();
 	send(_fd, client->raw_data.c_str(), client->raw_data.size(), 0); // check error send +
-	found = client->raw_data.find("connection : close");
+	found = client->raw_data.find("Connection: close");
 	if (found != std::string::npos)
 		return true;
 	arm_timer();

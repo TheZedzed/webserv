@@ -8,7 +8,7 @@ static void	handler(int signum, siginfo_t *info, void* context) {
 	if (signum == SIGINT || signum == SIGTSTP)
 		signal(signum, SIG_IGN);
 	else if (signum == SIGALRM)
-		webserver->timeout((timer_t*)info->si_value.sival_ptr);
+		webserver->timeout(info->si_value.sival_ptr);
 	else {
 		delete webserver;
 		exit(128 + SIGQUIT);

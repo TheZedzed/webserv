@@ -29,7 +29,7 @@ class	HttpContext {
 		bool	new_connection(); // manage new connection
 		bool	handle_request(); // manage received data
 		bool	handle_response(); // send data
-		void	timeout(timer_t* timerid); // client timeout
+		void	timeout(void* ptr); // client timeout
 
 	private:
 		HttpContext();

@@ -1,6 +1,7 @@
 #include "Response.hpp"
 #include <dirent.h>
 #include <ctime>
+#include <ftw.h>
 
 Response::Response(const Server* serv, const Request* req, str_t& raw) :  _buffer(raw), _server(serv), _request(req)
 { std::cout << "Create Response" << std::endl; }
@@ -65,7 +66,7 @@ void	Response::_set_header(int code, const str_t* redir) {
 	str_t	time;
 
 	std::time_t fetch_time = std::time(NULL);
-	time = std::asctime(std::localtime(&fetch_time));
+	time = std::asctime(std::localtime(&fetch_time)); //to do: change format
 	*time.rbegin() = CR;
 	data += "HTTP/1.1 " + _itoa(code) + " " + code_g[code] + CRLF;
 	data += "Server: " SERVER CRLF;
@@ -74,11 +75,10 @@ void	Response::_set_header(int code, const str_t* redir) {
 	data += "Content-Length: " + _itoa(_buffer.size()) + CRLF;
 	if (redir)
 		data += "Location: " + (*redir) + CRLF;
-	// to do : timer
-	//if (redir || code == 200 || code == ERR_403 || code == ERR_405)
-	//	data += "Connection: Keep-alive" CRLF;
-	//else
-	data += "Connection: close" CRLF CRLF;
+	if (redir || code == 200 || code == ERR_403 || code == ERR_405)
+		data += "Connection: Keep-alive" CRLF CRLF;
+	else
+		data += "Connection: close" CRLF CRLF;
 	data += _buffer;
 	_buffer = data;
 }
@@ -91,18 +91,48 @@ void	Response::process_get(const Location* uri_loc, const str_t& route) {
 	autoindex = uri_loc->get_autoindex();
 	if (*route.rbegin() == '/') {
 		if (autoindex == false)
-			return error_response(403);
-		if (_extract_directory(route, subroute) == FAILURE)
-			return error_response(500);
+			error_response(403);
+		else if (_extract_directory(route, subroute) == FAILURE)
+			error_response(500);
+		else
+			_set_header(200);
 	}
 	else if (_extract_content(&route) == FAILURE)
-		return error_response(500);
-	_set_header(200);
+		error_response(500);
+	else
+		_set_header(200);
+	return ;
 }
 
-void	Response::process_delete(const Location* uri_loc, const str_t& route) {
-	(void)uri_loc;
-	(void)route;
+static int	delete_file(const char* path, const struct stat* sb, int flag, struct FTW* buf) {
+	printf("%-3s %2d ",
+		(flag == FTW_D) ?   "d"   : (flag == FTW_DNR) ? "dnr" :
+		(flag == FTW_DP) ?  "dp"  : (flag == FTW_F) ?   "f" :
+		(flag == FTW_NS) ?  "ns"  : (flag == FTW_SL) ?  "sl" :
+		(flag == FTW_SLN) ? "sln" : "???",
+		buf->level);
+
+	if (flag == FTW_NS)
+		printf("-------");
+	else
+		printf("%7jd", (intmax_t) sb->st_size);
+	printf("   %-40s %d %s\n", path, buf->base, path + buf->base);
+	return remove(path);
+}
+
+void	Response::process_delete(const str_t& path) {
+	// to do: delete in DELETE folder only else error 501
+	if (*path.rbegin() == '/') {
+		if (nftw(path.c_str(), delete_file, 20, FTW_DEPTH | FTW_PHYS) < 0)
+			error_response(500);
+		else
+			_set_header(200);
+	}
+	else if (remove(path.c_str()) != SUCCESS)
+		error_response(500);
+	else
+		_set_header(200);
+	return ;
 }
 
 void	add_string_to_envp(std::vector<const char*>&env, std::string str)
@@ -222,7 +252,7 @@ const Location*	Response::construct_route(str_t& route) const {
 		pos = path.find_last_of('/', pos);
 		it = get_server()->get_routes().find(path.substr(0, pos + 1));
 		if (it != get_server()->get_routes().end()) {
-			route = it->second->get_root() + path.substr(pos + 1); // to do: test si root fini /
+			route = it->second->get_root() + path.substr(pos + 1);
 			return it->second;
 		}
 		pos ? pos -= 1 : 0;
@@ -235,18 +265,19 @@ void	Response::process_method(const Location* uri_loc, const str_t& route) {
 	bool	redir;
 
 	method = _request->get_rl()[0];
-	redir = uri_loc->get_redir().first != -1 ? true : false;
+	redir = uri_loc->get_redir().first != -1;
 	if (_method_allowed(uri_loc, method) == false)
 		error_response(405);
 	else if (redir == true) {
 		if (_extract_content(&uri_loc->get_redir().second) == FAILURE)
-			return error_response(404);
-		_set_header(301, &uri_loc->get_redir().second);
+			error_response(404);
+		else
+			_set_header(301, &uri_loc->get_redir().second);
 	}
 	else if (method == "POST")
 		process_post(uri_loc, route);
 	else if (method == "GET")
 		process_get(uri_loc, route);
 	else if (method == "DELETE")
-		process_delete(uri_loc, route);
+		process_delete(route);
 }

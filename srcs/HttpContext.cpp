@@ -16,13 +16,16 @@ HttpContext::HttpContext(const char* conf_file) {
 HttpContext::~HttpContext()
 { delete _parser; }
 
-void	HttpContext::timeout(timer_t* timerid) {
+void	HttpContext::timeout(void* ptr) {
 	timers_t::const_iterator	it;
+	timer_t*	timerid;
 
+	timerid = reinterpret_cast<timer_t*>(ptr);
 	std::cout<< "Connection timeout!" << std::endl;
 	it = _timers.find(*timerid);
 	peer = it->second;
 	_del_client();
+	return ;
 }
 
 bool	HttpContext::_mod_client() {
@@ -57,20 +60,25 @@ bool	HttpContext::_add_client(int fd) {
 	_multiplexer.get_events().insert(std::make_pair(fd, connex));
 	if (_multiplexer.add_event(connex, EPOLLIN | EPOLLET) == FAILURE)
 		throw std::runtime_error("Failure epoll_add\n");
-	connex->arm_timer();
 	return SUCCESS;
 }
 
 bool	HttpContext::new_connection() {
 	sockaddr_in	addr;
 	socklen_t	size;
-	int			fd;
+	int		listen_fd;
+	int		fd;
 
 	size = sizeof(addr);
 	bzero(&addr, size);
+	listen_fd = peer->get_fd();
 	if (peer->get_type() == LISTENNER) {
-		while ((fd = accept(peer->get_fd(), reinterpret_cast<sockaddr *>(&addr), &size)) > 0)
+		while (1) {
+			fd = accept(listen_fd, reinterpret_cast<sockaddr *>(&addr), &size);
+			if (fd <= 0)
+				break ;
 			_add_client(fd);
+		}
 		if (fd == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
 			throw std::runtime_error("Failure accept\n");
 		return true;
