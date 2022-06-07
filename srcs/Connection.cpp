@@ -76,7 +76,7 @@ int	Connection::retrieve_request() {
 	client = _data._client;
 	while ((rlen = recv(_fd, buf, 255, 0)) > 0) {
 		buf[rlen] = 0;
-		client->process_req(buf);
+		client->process_req(str_t(buf, rlen));
 		state = client->get_state();
 		if ((state & ERROR) || (state & RESPONSE))
 			break ;

@@ -21,6 +21,8 @@ static void	init(int ac) {
 	bzero(&sigg, sizeof(struct sigaction));
 	sigg.sa_flags = SA_SIGINFO;
 	sigg.sa_sigaction = &handler;
+	if (ac > 2)
+		throw std::logic_error("Usage: ./webserv [config_file]");
 	if (sigaction(SIGQUIT, &sigg, NULL) == -1)
 		throw std::logic_error("Error sigaction!");
 	if (sigaction(SIGINT, &sigg, NULL) == -1)
@@ -29,8 +31,6 @@ static void	init(int ac) {
 		throw std::logic_error("Error sigaction!");
 	if (sigaction(SIGALRM, &sigg, NULL) == -1)
 		throw std::logic_error("Error sigaction!");
-	if (ac > 2)
-		throw std::logic_error("Usage: ./webserv [config_file]");
 }
 
 int	main(int ac, char **av) {

@@ -20,8 +20,8 @@ void	HttpContext::timeout(void* ptr) {
 	timers_t::const_iterator	it;
 	timer_t*	timerid;
 
-	timerid = reinterpret_cast<timer_t*>(ptr);
 	std::cout<< "Connection timeout!" << std::endl;
+	timerid = reinterpret_cast<timer_t*>(ptr);
 	it = _timers.find(*timerid);
 	peer = it->second;
 	_del_client();
