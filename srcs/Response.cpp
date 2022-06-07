@@ -27,6 +27,20 @@ bool	Response::_method_allowed(const Location* uri_loc, const str_t& method) con
 	return false;
 }
 
+str_t	Response::_fetch_mime(int code) {
+	Request::fields_t::const_iterator	it;
+	str_t	path;
+	size_t	pos;
+
+	path = get_path(_request->get_rl()[1]);
+	pos = path.find_last_of('.');
+	if (code >= 400 || pos == std::string::npos)
+		return "text/html";
+	if ((it = mime_g.find(path.substr(pos + 1))) == mime_g.end())
+		return "text/html";
+	return it->second;
+}
+
 bool	Response::_extract_content(const str_t* path) {
 	std::ifstream	infile;
 	size_t	rlen;
@@ -70,20 +84,6 @@ bool	Response::_extract_directory(const str_t& route, const str_t& subroute) {
 	return SUCCESS;
 }
 
-str_t	Response::_fetch_mime(int code) {
-	Request::fields_t::const_iterator	it;
-	str_t	path;
-	size_t	pos;
-
-	path = get_path(_request->get_rl()[1]);
-	pos = path.find_last_of('.');
-	if (code >= 400 || pos == std::string::npos)
-		return "text/html";
-	if ((it = mime_g.find(path.substr(pos + 1))) == mime_g.end())
-		return "text/html";
-	return it->second;
-}
-
 void	Response::_set_header(int code, const str_t* redir) {
 	str_t	data;
 	str_t	time;
@@ -94,7 +94,7 @@ void	Response::_set_header(int code, const str_t* redir) {
 	data += "HTTP/1.1 " + _itoa(code) + " " + code_g[code] + CRLF;
 	data += "Server: " SERVER CRLF;
 	data += "Date: " + time;
-	data += "\nContent-Type: text/html" CRLF; // mimes_type
+	data += "\nContent-Type: " + _fetch_mime(code) + CRLF;
 	data += "Content-Length: " + _itoa(_buffer.size()) + CRLF;
 	if (redir)
 		data += "Location: " + (*redir) + CRLF;
