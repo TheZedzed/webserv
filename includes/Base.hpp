@@ -68,15 +68,14 @@ typedef std::vector<str_t>			strs_t;
 typedef std::pair<str_t, str_t>		socket_t;
 typedef std::vector<socket_t>		sockets_t;
 
-extern	std::map<int, str_t> code_g; // default phrase
-extern	std::map<int, str_t> page_g; // defaukt error page
+extern std::map<int, str_t>		code_g; // default phrase
+extern std::map<int, str_t>		page_g; // default error page
+extern std::map<str_t, str_t>	mime_g; // mimes type
 
 str_t	_itoa(int nb);
-void	_init_error_pages();
 str_t&	_tolower(str_t& str);
 size_t	_atoi(const str_t& str, int b);
 
-void default_pages();
-void status_msgs();
+void	_init();
 
 #endif

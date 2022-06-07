@@ -31,6 +31,7 @@ class	Response {
 		Response(const Response&);
 		Response&	operator=(const Response&);
 
+		str_t	_fetch_mime(int code);
 		void	_set_header(int code, const str_t* redir = NULL);
 		bool	_method_allowed(const Location* uri_loc, const str_t& method) const;
 		bool	_extract_content(const str_t* path);
