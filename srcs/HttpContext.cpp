@@ -30,12 +30,24 @@ void	HttpContext::timeout(void* ptr) {
 
 bool	HttpContext::_mod_client() {
 	const Server*	serv;
-	Client*			client;
+	Response*		res;
+	Client*			cli;
+	int		flag;
 
-	client = peer->get_client();
-	serv = client->search_requested_domain();
-	client->set_response(new Response(serv, client->get_request(), client->raw_data));
-	if (_multiplexer.mod_event(peer, EPOLLOUT) == FAILURE)
+	cli = peer->get_client();
+	flag = cli->get_state();
+	if (flag & RQLINE) {
+		cli->init();
+		flag = EPOLLIN;
+		peer->arm_timer();
+	}
+	else {
+		flag = EPOLLOUT;
+		serv = cli->search_requested_domain();
+		res = new Response(serv, cli->get_request(), cli->raw_data);
+		cli->set_response(res);
+	}
+	if (_multiplexer.mod_event(peer, flag) == FAILURE)
 		throw std::runtime_error("Failure epoll_mod\n");
 	return SUCCESS;
 }
@@ -110,10 +122,8 @@ void	HttpContext::worker(void) {
 				else if (state & RESPONSE || state & ERROR)
 					_mod_client();
 			}
-			if (events[i].events & EPOLLOUT) {
-				if (peer->send_and_close() == true)
-					_del_client();
-			}
+			if (events[i].events & EPOLLOUT)
+				peer->send_and_close() == true ? _del_client() : _mod_client();
 		}
 	}
 }

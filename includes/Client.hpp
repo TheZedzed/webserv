@@ -25,6 +25,8 @@ class	Client {
 		Client(const servers_t& serv);
 		~Client();
 
+		void	init();
+
 		int			get_state() const;
 		Request*	get_request();
 		Response*	get_response();
