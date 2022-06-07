@@ -98,30 +98,26 @@ bool	Client::_request_time_error() {
 }
 
 /*
-** to do: format header in last
-** process action
+** to do: describe function
 */
 void	Client::process_res() {
 	const Location*	uri_loc;
 	struct stat	st;
 	str_t	route;
 
-	if (_request_time_error() == true) // error during request time
+	if (_request_time_error() == true)
 		return ;
 	uri_loc = _response->construct_route(route);
 	if (stat(route.c_str(), &st) == -1) {
 		if (errno == EACCES)
-			_response->error_response(403);
-		else if (errno == ENAMETOOLONG)
-			_response->error_response(414);
-		else if (errno == ENOENT)
-			_response->error_response(404);
-		else
-			_response->error_response(500);
+			return _response->error_response(403);
+		if (errno == ENAMETOOLONG)
+			return _response->error_response(414);
+		if (errno == ENOENT)
+			return _response->error_response(404);
+		return _response->error_response(500);
 	}
-	else {
-		if ((st.st_mode & S_IFMT) == S_IFDIR && *route.rbegin() != '/')
-			route += "/";
-		_response->process_method(uri_loc, route);
-	}
+	if ((st.st_mode & S_IFMT) == S_IFDIR && *route.rbegin() != '/')
+		route += "/";
+	return _response->process_method(uri_loc, route);
 }

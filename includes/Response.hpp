@@ -3,6 +3,10 @@
 # ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
+#include <dirent.h>
+#include <ctime>
+#include <ftw.h>
+
 #include "Client.hpp"
 
 /*

@@ -1,7 +1,4 @@
 #include "Response.hpp"
-#include <dirent.h>
-#include <ctime>
-#include <ftw.h>
 
 static str_t	get_path(const str_t& uri)
 { return uri.substr(0, uri.find_last_of('?')); }

@@ -4,7 +4,6 @@
 # define HTTPCONTEXT_HPP
 
 # include "Multiplexer.hpp"
-# include "Parser.hpp"
 
 /* class HttpContext:
 ** nginx like Http-context
