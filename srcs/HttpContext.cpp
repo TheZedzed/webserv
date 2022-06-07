@@ -10,7 +10,7 @@ HttpContext::HttpContext(const char* conf_file) {
 		throw std::runtime_error("Failed init multiplexing");
 	if (_multiplexer.start_listenning() == FAILURE)
 		throw std::runtime_error("Failed up servers");
-	_init_error_pages();
+	_init();
 }
 
 HttpContext::~HttpContext()

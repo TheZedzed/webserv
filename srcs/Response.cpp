@@ -2,6 +2,9 @@
 #include <dirent.h>
 #include <ctime>
 
+static str_t	get_path(const str_t& uri)
+{ return uri.substr(0, uri.find_last_of('?')); }
+
 Response::Response(const Server* serv, const Request* req, str_t& raw) :  _buffer(raw), _server(serv), _request(req)
 { std::cout << "Create Response" << std::endl; }
 
@@ -25,14 +28,20 @@ bool	Response::_method_allowed(const Location* uri_loc, const str_t& method) con
 
 bool	Response::_extract_content(const str_t* path) {
 	std::ifstream	infile;
-	str_t	line;
+	size_t	rlen;
+	char*	buff;
 
 	infile.open(path->c_str());
-	if (!infile.is_open()) // error openning file
+	if (!infile.is_open())
 		return FAILURE;
-	while (std::getline(infile, line))
-		_buffer.append(line);
+	infile.seekg(0, infile.end);
+	rlen = infile.tellg();
+	infile.seekg(0, infile.beg);
+	buff = new char[rlen];
+	infile.readsome(buff, rlen);
+	_buffer.append(buff, rlen);
 	infile.close();
+	delete [] buff;
 	return SUCCESS;
 }
 
@@ -58,6 +67,20 @@ bool	Response::_extract_directory(const str_t& route, const str_t& subroute) {
 	_buffer += "</pre><hr>\r\n</body>\n</html>\n";
 	closedir(dp);
 	return SUCCESS;
+}
+
+str_t	Response::_fetch_mime(int code) {
+	Request::fields_t::const_iterator	it;
+	str_t	path;
+	size_t	pos;
+
+	path = get_path(_request->get_rl()[1]);
+	pos = path.find_last_of('.');
+	if (code >= 400 || pos == std::string::npos)
+		return "text/html";
+	if ((it = mime_g.find(path.substr(pos + 1))) == mime_g.end())
+		return "text/html";
+	return it->second;
 }
 
 void	Response::_set_header(int code, const str_t* redir) {
@@ -105,33 +128,8 @@ void	Response::process_delete(const Location* uri_loc, const str_t& route) {
 	(void)route;
 }
 
-void	add_string_to_envp(std::vector<const char*>&env, std::string str)
-{
-	env.push_back(str.c_str());
-}
-
 void	Response::process_post(const Location* uri_loc, const str_t& route) {
-	std::vector<const char *>	env;
-	Request::fields_t::const_iterator	it;
-
-	env.push_back("REQUEST_METHOD=POST");
-
-	str_t content_type = "CONTENT_TYPE=";
-	it = _request->get_headers().find("content-type");
-	it != _request->get_headers().end() ? content_type += it->second : "";
-	env.push_back(content_type.c_str());
-
-	str_t cookie = "HTTP_COOKIE=";
-	it = _request->get_headers().find("cookie");
-	it != _request->get_headers().end() ? cookie += it->second : "";
-	env.push_back(cookie.c_str());
-
-	str_t length = "CONTENT_LENGTH=";
-	it = _request->get_headers().find("content-length");
-	it != _request->get_headers().end() ? length += it->second : "";
-	env.push_back(length.c_str());
-
-	size_t	found = _request->get_rl()[1].find('?');
+	size_t	found;
 	str_t	uri;
 	str_t 	query;
 	str_t	query_string;
@@ -141,7 +139,30 @@ void	Response::process_post(const Location* uri_loc, const str_t& route) {
 	str_t	path_translated;
 	str_t	script_filename;
 	str_t	script_name;
+	str_t	request;
+	str_t 	content_type;
+	str_t	content_length;
+	str_t 	cookie;
+	static str_t	outfile_name = "/tmp/fileout";
+	static str_t	infile_name = "/tmp/filein";
+	static str_t	server_name = "SERVER_NAME= " SERVER;
 
+	std::vector<char *>	env;
+	Request::fields_t::const_iterator	it;
+
+	if (uri_loc->get_cgi().empty())
+		return error_response(501);
+	found =_request->get_rl()[1].find('?');
+	request ="REQUEST_METHOD=POST"; //can be dynamic with get->rl[0]
+	content_type = "CONTENT_TYPE=";
+	it = _request->get_headers().find("content-type");
+	it != _request->get_headers().end() ? content_type += it->second : "";
+	cookie = "HTTP_COOKIE=";
+	it = _request->get_headers().find("cookie");
+	it != _request->get_headers().end() ? cookie += it->second : "";
+	content_length = "CONTENT_LENGTH=";
+	it = _request->get_headers().find("content-length");
+	it != _request->get_headers().end() ? content_length += it->second : content_length += "";
 	if (found == std::string::npos) {
 		uri += _request->get_rl()[1].substr(_request->get_rl()[1].find_last_of('/'));
 	}
@@ -151,43 +172,94 @@ void	Response::process_post(const Location* uri_loc, const str_t& route) {
 	}
 	uri = uri.substr(1);
 	query_string = "QUERY_STRING=" + query;
-	env.push_back(query_string.c_str());
 	path_info = "PATH_INFO=" + uri;
-	env.push_back(path_info.c_str());
 	document_uri = "DOCUMENT_URI=" + uri;
-	env.push_back(document_uri.c_str());
 	request_uri = "REQUEST_URI=" + uri + "?" + query;
-	env.push_back(request_uri.c_str());
-
 	path_translated = "PATH_TRANSLATED=" + route;
-	env.push_back(path_translated.c_str());
 	script_name = "SCRIPT_NAME=" + route;
-	env.push_back(script_name.c_str());
 	script_filename = "SCRIPT_FILENAME=" + route;
-	env.push_back(script_filename.c_str());
-	env.push_back("PWD=/home/zedzed/webserv");
-	env.push_back("PATH=/home/zedzed/.cargo/bin:/home/zedzed/.local/bin:/home/zedzed/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin");
-	const char *argv [] = {"cgi", "/home/zedzed/webserv/www/form/submit.php", NULL};
-	int	fd = open("/tmp/infile", O_WRONLY | O_CREAT, 0644);
-	write(fd, _request->get_body().c_str(), _request->get_body().size());
-	close(fd);
-	fd = open("/tmp/infile", O_RDONLY);
+
+	env.push_back(request.begin().base());
+	env.push_back(content_type.begin().base());
+	env.push_back(cookie.begin().base());
+	env.push_back(content_length.begin().base());
+	env.push_back(query_string.begin().base());
+	env.push_back(path_info.begin().base());
+	env.push_back(document_uri.begin().base());
+	env.push_back(request_uri.begin().base());
+	env.push_back(path_translated.begin().base());
+	env.push_back(script_name.begin().base());
+	env.push_back(script_filename.begin().base());
+	env.push_back(server_name.begin().base());
+	env.push_back(NULL);
+
+	int in;
+	int out;
+	out = open(outfile_name.c_str(), O_RDWR | O_CREAT, 0644);
+	in = open(infile_name.c_str(), O_WRONLY | O_CREAT, 0644);
+	write(in, _request->get_body().c_str(), _request->get_body().size());
+	close(in);
+	in = open(infile_name.c_str(), O_RDONLY);
+
 	pid_t pid = fork();
 	if (pid == -1)
 		exit(0);
 	else if (pid == 0)
 	{
-		if (dup2(fd, STDIN_FILENO) == -1)
-			std::cout << "error\n";
-		execve("/usr/bin/php-cgi", (char**)argv, (char**)(env.begin().base()));
-		printf("error\n");
+		if (dup2(in, STDIN_FILENO) == -1)
+			exit(FAILURE);
+		if (dup2(out, STDOUT_FILENO) == -1)
+			exit(FAILURE);
+		for (int i = 3; i < 256; ++i)
+			close(i);
+		char * const argv[] = {(char*)"cgi", const_cast<char *>(route.c_str()), NULL};
+		execve(uri_loc->get_cgi().c_str(), argv, env.begin().base());
+		perror(0);
 		exit(1);
 	}
-	close(fd);
-	wait(0);
-	if (uri_loc->get_cgi().empty())
-		error_response(501);
-	(void)route;
+	int status;
+	waitpid(pid, &status, 0);
+	close(in);
+	close(out);
+	unlink(infile_name.c_str());
+	if (WEXITSTATUS(status))
+	{
+		unlink(outfile_name.c_str());
+		return error_response(500);
+	}
+
+	//if(_extract_content(&outfile_name) == FAILURE)
+		//return error_response(500);
+	str_t 	line;
+	str_t 	headers;
+
+	std::ifstream output(outfile_name.c_str());        //SPLIT THE FD INTO HEADERS PART AND BODY PART
+	//HEADERS
+	while(std::getline(output, line) && line != "\r")
+	{
+		line += "\n";
+		headers.append(line);
+	}
+	//BODY
+	size_t pos;
+	size_t length;
+
+	std::getline(output, line);
+	pos = output.tellg();
+
+	output.seekg(pos, output.end);
+	length = (size_t)output.tellg() - headers.size();
+	output.seekg(pos, output.beg);
+	char buffer_body[length + 1];
+	buffer_body[length + 1] = '\0';
+	output.readsome(buffer_body, length);
+
+	unlink(outfile_name.c_str());
+		str_t	data;
+	str_t	time;
+
+	_buffer = data;
+
 }
 
 void	Response::error_response(int code) {
@@ -216,8 +288,8 @@ const Location*	Response::construct_route(str_t& route) const {
 	str_t	path;
 	size_t	pos;
 
+	path = get_path(_request->get_rl()[1]);
 	pos = std::string::npos;
-	path = _request->get_rl()[1];
 	do {
 		pos = path.find_last_of('/', pos);
 		it = get_server()->get_routes().find(path.substr(0, pos + 1));
@@ -235,7 +307,7 @@ void	Response::process_method(const Location* uri_loc, const str_t& route) {
 	bool	redir;
 
 	method = _request->get_rl()[0];
-	redir = uri_loc->get_redir().first != -1 ? true : false;
+	redir = uri_loc->get_redir().first != -1;
 	if (_method_allowed(uri_loc, method) == false)
 		error_response(405);
 	else if (redir == true) {
