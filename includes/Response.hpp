@@ -21,9 +21,9 @@ class	Response {
 		const Location*	construct_route(str_t& route) const;
 
 		void	error_response(int code);
+		void	process_delete(const str_t& path);
 		void	process_method(const Location* uri_loc, const str_t& route);
 		void	process_post(const Location* uri_loc, const str_t& route);
-		void	process_delete(const Location* uri_loc, const str_t& route);
 		void	process_get(const Location* uri_loc, const str_t& route);
 
 	private:

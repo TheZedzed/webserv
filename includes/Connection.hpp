@@ -16,9 +16,12 @@ class	Connection {
 		Client*	get_client();
 
 		int					get_fd() const;
+		timer_t				get_timer() const;
 		bool				get_type() const;
 		const servers_t&	get_servers() const;
 
+		bool	arm_timer();
+		bool	create_timer();
 		bool	send_and_close();
 		int		retrieve_request();
 
@@ -34,6 +37,7 @@ class	Connection {
 			data_u() {}
 		};
 
+		timer_t		_timerid;
 		const int	_fd;
 		const bool	_type;
 		data_u		_data;

@@ -1,7 +1,7 @@
 NAME		:= webserv
 CXX			:= g++
 CXXPPFLAGS	:= -I./includes
-CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98 -g
+CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98 -g -lrt
 
 FILES	:=	parser/Parser Server parser/Location parser/Utils \
 			parser/Server_directives parser/Location_directives \
