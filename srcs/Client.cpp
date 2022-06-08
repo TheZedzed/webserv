@@ -22,10 +22,8 @@ static int	_translate(int hex) {
 	return 505;
 }
 
-Client::Client(const servers_t& serv) : _servers(serv) {
-	std::cout << "Create new client!" << std::endl;
-	init();
-}
+Client::Client(const servers_t& serv) : _state(RQLINE), _request(NULL), _response(NULL), _servers(serv)
+{ std::cout << "Create new client!" << std::endl; }
 
 Client::~Client() {
 	std::cout << "Destroy client!" << std::endl;
@@ -33,14 +31,13 @@ Client::~Client() {
 	delete _response;
 }
 
-void	Client::init() {
-	_state = RQLINE;
-	if (_request)
-		delete _request;
-	_request = NULL;
-	if (_response)
-		delete _response;
-	_response = NULL;
+void	Client::clear() {
+	delete _response;
+	delete _request;
+	raw_data.clear();
+	set_request(new Request());
+	set_response(NULL);
+	set_state(RQLINE);
 }
 
 Request*	Client::get_request()
@@ -51,6 +48,9 @@ Response*	Client::get_response()
 
 int	Client::get_state() const
 { return _state; }
+
+void	Client::set_state(int state)
+{ _state = state; }
 
 void	Client::set_response(Response* response)
 { _response = response; }

@@ -25,12 +25,13 @@ class	Client {
 		Client(const servers_t& serv);
 		~Client();
 
-		void	init();
+		void	clear();
 
 		int			get_state() const;
 		Request*	get_request();
 		Response*	get_response();
 
+		void	set_state(int state);
 		void	set_request(Request* request);
 		void	set_response(Response* response);
 
@@ -38,7 +39,6 @@ class	Client {
 
 		void	process_req(const str_t& raw);
 		void	process_res();
-		void	send(int socket);
 
 		str_t	raw_data;
 

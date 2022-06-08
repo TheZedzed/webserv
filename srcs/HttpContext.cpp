@@ -6,10 +6,8 @@ static epoll_event	events[256];
 HttpContext::HttpContext(const char* conf_file) {
 	std::cout << "Creating webserver!" << std::endl;
 	_parser = new Parser(conf_file);
-	if (_multiplexer.build_events(_parser->get_map()) == FAILURE)
-		throw std::runtime_error("Failed init multiplexing");
-	if (_multiplexer.start_listenning() == FAILURE)
-		throw std::runtime_error("Failed up servers");
+	_multiplexer.build_events(_parser->get_map());
+	_multiplexer.start_listenning();
 	_init();
 }
 
@@ -17,62 +15,51 @@ HttpContext::~HttpContext()
 { delete _parser; }
 
 void	HttpContext::timeout(void* ptr) {
-	timers_t::const_iterator	it;
+	Multiplexer::timers_t::const_iterator	it;
 	timer_t*	timerid;
 
 	std::cout<< "Connection timeout!" << std::endl;
 	timerid = reinterpret_cast<timer_t*>(ptr);
-	it = _timers.find(*timerid);
-	peer = it->second;
-	_del_client();
+	it = _multiplexer.get_timers().find(*timerid);
+	if (it != _multiplexer.get_timers().end()) {
+		it->second->get_client()->set_state(DECONNECT);
+		close(it->second->get_fd());
+	}
 	return ;
 }
 
-bool	HttpContext::_mod_client() {
+void	HttpContext::_mod_client() {
 	const Server*	serv;
 	Response*		res;
 	Client*			cli;
-	int		flag;
+	int				flag;
 
+	flag = EPOLLOUT;
 	cli = peer->get_client();
-	flag = cli->get_state();
-	if (flag & RQLINE) {
-		cli->init();
-		flag = EPOLLIN;
-		peer->arm_timer();
-	}
+	if (cli->get_state() & RQLINE)
+		flag = EPOLLIN | EPOLLET;
 	else {
-		flag = EPOLLOUT;
 		serv = cli->search_requested_domain();
 		res = new Response(serv, cli->get_request(), cli->raw_data);
 		cli->set_response(res);
 	}
-	if (_multiplexer.mod_event(peer, flag) == FAILURE)
-		throw std::runtime_error("Failure epoll_mod\n");
-	return SUCCESS;
+	_multiplexer.mod_event(peer, flag);
+	peer->arm_timer();
+	return ;
 }
 
-bool	HttpContext::_del_client() {
-	std::cout << "Client deleted from epoll!" << std::endl;
-	if (timer_delete(peer->get_timer()) == -1)
-		throw std::logic_error("Failure delete timer");
-	if (_multiplexer.del_event(peer) == FAILURE)
-		throw std::runtime_error("Failure epoll_del\n");
-	return SUCCESS;
-}
-
-bool	HttpContext::_add_client(int fd) {
+void	HttpContext::_add_client(int fd) {
 	Connection*	connex;
 	Client*		client;
+	timer_t		timer;
 
 	client = new Client(peer->get_servers());
-	client->set_request(new Request());
 	connex = new Connection(fd, CLIENT, client);
-	_timers.insert(std::make_pair(connex->get_timer(), connex));
+	timer = connex->get_timer();
+	_multiplexer.get_timers().insert(std::make_pair(timer, connex));
 	_multiplexer.get_events().insert(std::make_pair(fd, connex));
-	if (_multiplexer.add_event(connex, EPOLLIN | EPOLLET) == FAILURE)
-		throw std::runtime_error("Failure epoll_add\n");
-	return SUCCESS;
+	_multiplexer.add_event(connex, EPOLLIN | EPOLLET);
+	return ;
 }
 
 bool	HttpContext::new_connection() {
@@ -115,15 +102,17 @@ void	HttpContext::worker(void) {
 			peer = reinterpret_cast<Connection*>(events[i].data.ptr);
 			if (new_connection() == true)
 				continue ;
+			if (peer->get_client()->get_state() & DECONNECT)
+				continue ;
 			if (events[i].events & EPOLLIN) {
 				state = peer->retrieve_request();
-				if (state == DECONNECT)
-					_del_client();
-				else if (state & RESPONSE || state & ERROR)
+				if (state & RESPONSE || state & ERROR)
 					_mod_client();
 			}
 			if (events[i].events & EPOLLOUT)
-				peer->send_and_close() == true ? _del_client() : _mod_client();
+				if (peer->send_and_close() == false)
+					_mod_client();
 		}
+		_multiplexer.remove_deconnection();
 	}
 }

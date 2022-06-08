@@ -13,21 +13,24 @@
 */
 class	Multiplexer {
 	public:
+		typedef std::map<timer_t, Connection*>	timers_t;
 		typedef std::map<short, Connection*>	events_t;
 		typedef Connection::servers_t			servers_t;
 
 		~Multiplexer();
 		Multiplexer();
 
-		bool	build_events(const Parser::listenners_t& map);
-		bool	start_listenning();
+		void	build_events(const Parser::listenners_t& map);
+		void	remove_deconnection();
+		void	start_listenning();
 
-		bool	add_event(Connection* data, int flag);
-		bool	mod_event(Connection* data, int flag);
-		bool	del_event(Connection* data);
+		void	add_event(Connection* data, int flag);
+		void	mod_event(Connection* data, int flag);
+		void	del_event(Connection* data);
 
 		const int&		get_instance() const;
 		events_t&		get_events();
+		timers_t&		get_timers();
 
 	private:
 		Multiplexer(const Multiplexer&);
@@ -35,6 +38,7 @@ class	Multiplexer {
 
 		int			_instance;
 		events_t	_events;
+		timers_t	_timers;
 };
 
 #endif
