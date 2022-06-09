@@ -3,6 +3,8 @@
 static str_t&	_clean(str_t& str) {
 	while (str[0] == ' ')
 		str.erase(0, 1);
+	if (*str.rbegin() == '\r')
+		str.erase(str.end() - 1);
 	return str;
 }
 
