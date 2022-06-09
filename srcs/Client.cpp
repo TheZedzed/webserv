@@ -22,13 +22,25 @@ static int	_translate(int hex) {
 	return 505;
 }
 
-Client::Client(const servers_t& serv) : _state(RQLINE), _request(), _response(), _servers(serv)
-{ std::cout << "Create new client!" << std::endl; }
+Client::Client(const servers_t& serv) : _request(NULL), _response(NULL), _servers(serv) {
+	std::cout << "Create new client!" << std::endl;
+	init();
+}
 
 Client::~Client() {
 	std::cout << "Destroy client!" << std::endl;
 	delete _request;
 	delete _response;
+}
+
+void	Client::init() {
+	_state = RQLINE;
+	if (_request)
+		delete _request;
+	_request = new Request();
+	if (_response)
+		delete _response;
+	_response = NULL;
 }
 
 Request*	Client::get_request()
@@ -45,6 +57,24 @@ void	Client::set_response(Response* response)
 
 void	Client::set_request(Request* request)
 { _request = request; }
+
+bool	Client::_request_time_error() {
+	str_t	body;
+	size_t	max;
+	bool	err;
+
+	err = false;
+	body = _request->get_body();
+	if (_response->get_server())
+		max = _response->get_server()->get_max();
+	else
+		max = 4096;
+	if ((_state & ERROR) && (err = true))
+		_response->error_response(_translate(_state & ~ERROR));
+	else if (body.size() > max && (err = true))
+		_response->error_response(413);
+	return err;
+}
 
 const Server*	Client::search_requested_domain() const {
 	servers_t::const_iterator			it1;
@@ -79,49 +109,27 @@ void	Client::process_req(const str_t& raw_received) {
 		_state = _request->process_body(raw_data);
 }
 
-bool	Client::_request_time_error() {
-	str_t	body;
-	size_t	max;
-	bool	err;
-
-	err = false;
-	body = _request->get_body();
-	if (_response->get_server())
-		max = _response->get_server()->get_max();
-	else
-		max = 4096;
-	if ((_state & ERROR) && (err = true))
-		_response->error_response(_translate(_state & ~ERROR));
-	else if (body.size() > max && (err = true))
-		_response->error_response(413);
-	return err;
-}
-
 /*
-** to do: format header in last
-** process action
+** to do: describe function
 */
-void	Client::process_res() {
+void	Client::process_res(int fd) {
 	const Location*	uri_loc;
 	struct stat	st;
 	str_t	route;
 
-	if (_request_time_error() == true) // error during request time
+	if (_request_time_error() == true)
 		return ;
 	uri_loc = _response->construct_route(route);
 	if (stat(route.c_str(), &st) == -1) {
 		if (errno == EACCES)
-			_response->error_response(403);
-		else if (errno == ENAMETOOLONG)
-			_response->error_response(414);
-		else if (errno == ENOENT)
-			_response->error_response(404);
-		else
-			_response->error_response(500);
+			return _response->error_response(403);
+		if (errno == ENAMETOOLONG)
+			return _response->error_response(414);
+		if (errno == ENOENT)
+			return _response->error_response(404);
+		return _response->error_response(500);
 	}
-	else {
-		if ((st.st_mode & S_IFMT) == S_IFDIR && *route.rbegin() != '/')
-			route += "/";
-		_response->process_method(uri_loc, route);
-	}
+	if ((st.st_mode & S_IFMT) == S_IFDIR && *route.rbegin() != '/')
+		route += "/";
+	return _response->process_method(uri_loc, route, fd);
 }

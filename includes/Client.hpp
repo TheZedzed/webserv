@@ -25,6 +25,8 @@ class	Client {
 		Client(const servers_t& serv);
 		~Client();
 
+		void	init();
+
 		int			get_state() const;
 		Request*	get_request();
 		Response*	get_response();
@@ -35,7 +37,7 @@ class	Client {
 		const Server*	search_requested_domain() const;
 
 		void	process_req(const str_t& raw);
-		void	process_res();
+		void	process_res(int fd);
 		void	send(int socket);
 
 		str_t	raw_data;

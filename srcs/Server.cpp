@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _max(1024)
+Server::Server() : _max(1024 * 1024)
 { std::cout << "\t[Create Server]" << std::endl; }
 
 Server::~Server() {
@@ -32,14 +32,14 @@ void	Server::set_socket(const socket_t& socket)
 { _sockets.push_back(socket); }
 
 void	Server::set_max(const str_t& line)
-{ _max = std::atoi(line.c_str()); }
+{ _max = _atoi(line, 10); }
 
 void	Server::set_err_page(const strs_t& line) {
 	str_t	value;
 	int		key;
 
 	value = line[2];
-	key = std::atoi(line[1].c_str());
+	key = _atoi(line[1], 10);
 	_error_pages.insert(std::make_pair(key, value));
 }
 

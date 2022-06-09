@@ -20,6 +20,9 @@
 			border-radius: 6px;
 			box-shadow: 3px 3px white;
 		}
+		h1 {
+			color: white;
+		}
 	</style>
 </head>
 <body style="background-color: #1F212E; font-family: Gill Sans, sans-serif;">
@@ -31,23 +34,21 @@
 	</p>
 	<div id="form">
 		<form method="post" action="submit.php">
-			<input name="feild_one" placeholder="Input feild one...."></br>
-			<input name="feild_two" placeholder="Input feild two...."></br>
+			<input name="field_one" placeholder="Input field one...."></br>
+			<input name="field_two" placeholder="Input field two...."></br>
 			<button type="submit">Submit</button></br>
 		</form>
 	</div>
 	<?php
 		if ($_SERVER["REQUEST_METHOD"] == "POST") {
-			print_r($_POST);
-			print_r($_ENV);
-		}
-		if (isset($_POST['feild_one']) && isset($_POST['feild_two'])) {
-			echo("Feild one = " . htmlspecialchars($_POST['feild_one']));
-			echo("Feild two = " . htmlspecialchars($_POST['feild_two']));
-			//setcookie(string "CooKi3");
+			if (isset($_POST['field_one']) && isset($_POST['field_two'])) {
+				echo("<h1> field one = " . htmlspecialchars($_POST['field_one']) . "</h1>");
+				echo("<h1> field two = " . htmlspecialchars($_POST['field_two']) . "</h1>");
+				setcookie("CooKi3");
+			}
 		}
 		if (isset($_COOKIE['cookie_value']))
-			echo("Cookie value = " . htmlspecialchars($_COOKIE['cookie_value']))
+			echo("Cookie value = " . htmlspecialchars($_COOKIE['cookie_value']));
 	?>
 	<p style="margin-top:15px; font-style:italic; text-align: center; color: darkgray;">
 		Webserv 42 - 2022

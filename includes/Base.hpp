@@ -11,22 +11,20 @@
 # include <netinet/ip.h>
 # include <arpa/inet.h>
 # include <sys/epoll.h>
-# include <fcntl.h>
-# include <unistd.h>
-# include <signal.h>
-# include <fstream>
-# include <sstream>
-# include <errno.h>
 # include <sys/stat.h>
 # include <sys/types.h>
 # include <sys/wait.h>
+# include <fcntl.h>
+# include <unistd.h>
+# include <signal.h>
+# include <errno.h>
 
-
+# include <ctime>
+# include <fstream>
+# include <sstream>
 # include <iostream>
 # include <cstring>
-# include <cstdio>
 # include <map>
-# include <set>
 # include <vector>
 # include <algorithm>
 
@@ -38,7 +36,6 @@
 # define CRLF "\r\n"
 
 # define SERVER "webserv"
-# define INDEX_DFT "/home/user/webserve/html/"
 
 # define CLIENT 1
 # define LISTENNER 0
