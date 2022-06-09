@@ -5,7 +5,7 @@ str_t	Cgi::_infile_name = "/tmp/filein";
 str_t	Cgi::_request_scheme = "REQUEST_SCHEME=http";
 str_t	Cgi::_server_protocol = "SERVER_PROTOCOL=HTTP/1.1";
 str_t	Cgi::_gateway_interface = "GATEWAY_INTERFACE=CGI/1.1";
-str_t	Cgi::_server_software = "SERVER_SOFTWARE=webserv/v0.5";
+str_t	Cgi::_server_software = "SERVER_SOFTWARE=webserv";
 
 
 void	Cgi::_find_and_fill_req_field(const str_t& to_find, str_t& to_fill) {
@@ -20,24 +20,8 @@ void	Cgi::_insert_env_vars(void) {
 
 	str_t *pointer = &_server_name;
 
-	for (int i = 0; i < 15; ++i) {
+	for (int i = 0; i < 15; ++i)
 		_env.push_back((pointer + i)->begin().base());
-	}
-	/* _env.push_back(_request_method.begin().base());
-	_env.push_back(_content_type.begin().base());
-	_env.push_back(_cookie.begin().base());
-	_env.push_back(_content_length.begin().base());
-	_env.push_back(_query_string.begin().base());
-	_env.push_back(_path_info.begin().base());
-	_env.push_back(_document_uri.begin().base());
-	_env.push_back(_request_uri.begin().base());
-	_env.push_back(_path_translated.begin().base());
-	_env.push_back(_script_name.begin().base());
-	_env.push_back(_script_filename.begin().base());
-	_env.push_back(_server_name.begin().base());
-	_env.push_back(_server_port.begin().base());
-	_env.push_back(_remote_address.begin().base());
-	_env.push_back(_remote_port.begin().base()); */
 	_env.push_back(Cgi::_request_scheme.begin().base());
 	_env.push_back(Cgi::_gateway_interface.begin().base());
 	_env.push_back(Cgi::_server_protocol.begin().base());
@@ -50,10 +34,10 @@ void	Cgi::_fill_remote_vars(int socketfd) {
 	struct sockaddr_in	addr;
 	socklen_t			socklen;
 	char				buf_addr[sizeof(addr)];
-	
+
 	bzero(&addr, sizeof(addr));
 	socklen = sizeof(addr);
-	getsockname(socketfd, (struct sockaddr*)&addr, &socklen);	
+	getsockname(socketfd, (struct sockaddr*)&addr, &socklen);
 	_remote_port += _itoa(htons(addr.sin_port));
 	_remote_address += inet_ntop(AF_INET, (void*)&addr.sin_addr, buf_addr, socklen);
 }
@@ -143,7 +127,7 @@ bool    Cgi::exec_cgi(const str_t& route) {
  		for (int i = 3; i < 256; ++i)
  			close(i);
  		char* const	argv[3] = {(char*)"cgi", const_cast<char *>(route.c_str()), NULL};
-                execve(_cgi_path.c_str(), argv, _env.begin().base());
+			execve(_cgi_path.c_str(), argv, _env.begin().base());
  		perror("CGI_ERROR");
  		exit(FAILURE);
  	}
@@ -157,20 +141,19 @@ bool    Cgi::exec_cgi(const str_t& route) {
 }
 
 bool	Cgi::treat_cgi_output(str_t &buffer) {
-	std::ifstream output(Cgi::_outfile_name.c_str());
+	std::ifstream output;
 	str_t	line;
 	str_t	status;
 
-	//output.open(Cgi::_outfile_name.c_str());
+	output.open(Cgi::_outfile_name.c_str());
 	if (output.fail())
 		return FAILURE;
-	std::cout << "OPEN WORK\n";
 	//HEADERS
-	status = "200 OK"  CRLF; 
+	status = "200 OK"  CRLF;
 	while(std::getline(output, line) && line != "\r")
 	{
 		line.push_back('\n');
-		if (line.find("Status: ") == 0) 
+		if (line.find("Status: ") == 0)
 			status = line.substr(8);
 		else
 			buffer += line;
@@ -178,7 +161,7 @@ bool	Cgi::treat_cgi_output(str_t &buffer) {
 	//BODY
 	size_t pos;
 	size_t length;
-	
+
 	pos = output.tellg();
 	output.seekg(0, output.end);
 	length = (size_t)output.tellg() - (size_t)pos;
@@ -189,7 +172,7 @@ bool	Cgi::treat_cgi_output(str_t &buffer) {
 
 	str_t date;
 	str_t time;
-	
+
 	std::time_t fetch_time = std::time(NULL);
 	time = std::asctime(std::localtime(&fetch_time)); //to do: change format
 	*time.rbegin() = CR;
@@ -197,25 +180,25 @@ bool	Cgi::treat_cgi_output(str_t &buffer) {
 	buffer.insert(0, "HTTP/1.1 " + status);
 	if (buffer.find("Server: ") == std::string::npos)
 		buffer += "Server: " SERVER CRLF;
-	if (buffer.find("Date") == std::string::npos)
+	if (buffer.find("Date: ") == std::string::npos)
 		buffer += "Date: " + time;
 	//if (buffer.find("Date") != std::string::npos)
 	//to do : Connection Close or keep alive ?
 	if (buffer.find("Content-Length: ") == std::string::npos)
 		buffer += "Content-Length: " + _itoa(length) + CRLF;
-	buffer += CRLF;	
+	buffer += CRLF;
 	buffer.append(buffer_body, length);
-	
+
 	output.close();
 	return 1;
 	//C8NT_TENTYPE
 	//CUSTOM HEADER: "Contnent-type:"
 	//DATE:
-	//Content-length: 
+	//Content-length:
 
 
 
-/* 
+/*
 	data += "HTTP/1.1 " + _itoa(code) + " " + code_g[code] + CRLF;
 	data += "Server: " SERVER CRLF;
 	data += "Date: " + time;
