@@ -47,7 +47,7 @@ class	Client {
 		Client(const Client&);
 		Client&	operator=(const Client&);
 
-		bool	_request_time_error();
+		bool	_route_error(str_t& route);
 
 		int			_state;
 		Request*	_request;

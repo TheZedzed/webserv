@@ -79,7 +79,7 @@ bool	HttpContext::new_connection() {
 			_add_client(fd);
 		}
 		if (fd == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
-			throw std::runtime_error("Failure accept\n");
+			throw std::runtime_error("Failure accept");
 		return true;
 	}
 	return false;
