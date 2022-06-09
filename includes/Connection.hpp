@@ -37,10 +37,10 @@ class	Connection {
 			data_u() {}
 		};
 
-		timer_t		_timerid;
 		const int	_fd;
 		const bool	_type;
 		data_u		_data;
+		timer_t		_timerid;
 };
 
 #endif

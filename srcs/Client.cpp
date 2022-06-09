@@ -7,12 +7,6 @@ static int	_translate(int hex) {
 		return 403;
 	if (hex == ERR_404)
 		return 404;
-	if (hex == ERR_405)
-		return 405;
-	if (hex == ERR_411)
-		return 411;
-	if (hex == ERR_413)
-		return 413;
 	if (hex == ERR_414)
 		return 414;
 	if (hex == ERR_500)
@@ -22,10 +16,8 @@ static int	_translate(int hex) {
 	return 505;
 }
 
-Client::Client(const servers_t& serv) : _request(NULL), _response(NULL), _servers(serv) {
-	std::cout << "Create new client!" << std::endl;
-	init();
-}
+Client::Client(const servers_t& serv) : _state(RQLINE), _request(new Request()), _response(NULL), _servers(serv)
+{ std::cout << "Create new client!" << std::endl; }
 
 Client::~Client() {
 	std::cout << "Destroy client!" << std::endl;
@@ -33,14 +25,13 @@ Client::~Client() {
 	delete _response;
 }
 
-void	Client::init() {
-	_state = RQLINE;
-	if (_request)
-		delete _request;
-	_request = new Request();
-	if (_response)
-		delete _response;
-	_response = NULL;
+void	Client::clear() {
+	delete _response;
+	delete _request;
+	raw_data.clear();
+	set_request(new Request());
+	set_response(NULL);
+	set_state(RQLINE);
 }
 
 Request*	Client::get_request()
@@ -52,28 +43,32 @@ Response*	Client::get_response()
 int	Client::get_state() const
 { return _state; }
 
+void	Client::set_state(int state)
+{ _state = state; }
+
 void	Client::set_response(Response* response)
 { _response = response; }
 
 void	Client::set_request(Request* request)
 { _request = request; }
 
-bool	Client::_request_time_error() {
-	str_t	body;
-	size_t	max;
-	bool	err;
+bool	Client::_route_error(str_t& route) {
+	struct stat	st;
 
-	err = false;
-	body = _request->get_body();
-	if (_response->get_server())
-		max = _response->get_server()->get_max();
-	else
-		max = 4096;
-	if ((_state & ERROR) && (err = true))
-		_response->error_response(_translate(_state & ~ERROR));
-	else if (body.size() > max && (err = true))
-		_response->error_response(413);
-	return err;
+	if (stat(route.c_str(), &st) == -1) {
+		if (errno == EACCES)
+			set_state(ERROR | ERR_403);
+		else if (errno == ENOENT)
+			set_state(ERROR | ERR_404);
+		else if (errno == ENAMETOOLONG)
+			set_state(ERROR | ERR_414);
+		else
+			set_state(ERROR | ERR_500);
+		return true;
+	}
+	if ((st.st_mode & S_IFMT) == S_IFDIR && *route.rbegin() != '/')
+		route += "/";
+	return false;
 }
 
 const Server*	Client::search_requested_domain() const {
@@ -84,9 +79,7 @@ const Server*	Client::search_requested_domain() const {
 
 	it1 = _servers.begin();
 	res = _request->get_headers().find("host");
-	if (res == _request->get_headers().end())
-		return NULL;
-	match = res->second;
+	match = res->second.substr(0, res->second.find_last_of(':')); // host: [name:port]
 	for (; it1 != _servers.end(); ++it1) {
 		it2 = (*it1)->get_names().begin();
 		for (; it2 != (*it1)->get_names().end(); ++it2) {
@@ -99,8 +92,6 @@ const Server*	Client::search_requested_domain() const {
 
 void	Client::process_req(const str_t& raw_received) {
 	raw_data.append(raw_received);
-	if (!_request)
-		_request = new Request();
 	if (_state & RQLINE)
 		_state = _request->process_rl(raw_data);
 	if (_state & HEADER)
@@ -112,24 +103,18 @@ void	Client::process_req(const str_t& raw_received) {
 /*
 ** to do: describe function
 */
-void	Client::process_res(int fd) {
+void	Client::process_res() {
 	const Location*	uri_loc;
-	struct stat	st;
 	str_t	route;
+	size_t	max;
 
-	if (_request_time_error() == true)
-		return ;
+	max = _response->get_server() ? _response->get_server()->get_max() : 1024 * 1024;
+	if ((_state & ERROR))
+		return _response->error_response(_translate(_state & ~ERROR));
+	else if (_request->get_body().size() > max)
+		return _response->error_response(413);
 	uri_loc = _response->construct_route(route);
-	if (stat(route.c_str(), &st) == -1) {
-		if (errno == EACCES)
-			return _response->error_response(403);
-		if (errno == ENAMETOOLONG)
-			return _response->error_response(414);
-		if (errno == ENOENT)
-			return _response->error_response(404);
-		return _response->error_response(500);
-	}
-	if ((st.st_mode & S_IFMT) == S_IFDIR && *route.rbegin() != '/')
-		route += "/";
-	return _response->process_method(uri_loc, route, fd);
+	if (_route_error(route) == true)
+		return _response->error_response(_translate(_state & ~ERROR));
+	return _response->process_method(uri_loc, route);
 }

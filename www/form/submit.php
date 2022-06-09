@@ -40,12 +40,11 @@
 		</form>
 	</div>
 	<?php
-		if ($_SERVER["REQUEST_METHOD"] == "POST") {
-			if (isset($_POST['field_one']) && isset($_POST['field_two'])) {
-				echo("<h1> field one = " . htmlspecialchars($_POST['field_one']) . "</h1>");
-				echo("<h1> field two = " . htmlspecialchars($_POST['field_two']) . "</h1>");
-				setcookie("CooKi3");
-			}
+
+		if (isset($_POST['field_one']) && isset($_POST['field_two'])) {
+			echo("<h1> field one = " . htmlspecialchars($_POST['field_one']) . "</h1>");
+			echo("<h1> field two = " . htmlspecialchars($_POST['field_two']) . "</h1>");
+			setcookie("CooKi3");
 		}
 		if (isset($_COOKIE['cookie_value']))
 			echo("Cookie value = " . htmlspecialchars($_COOKIE['cookie_value']));

@@ -42,7 +42,7 @@ void	Cgi::_fill_remote_vars(int socketfd) {
 	_remote_address += inet_ntop(AF_INET, (void*)&addr.sin_addr, buf_addr, socklen);
 }
 
-void	Cgi::build_env(const str_t& route, int fd) {
+void	Cgi::build_env(const str_t& route, int socket) {
 	size_t	found;
 	str_t	uri;
  	str_t	query;
@@ -74,7 +74,7 @@ void	Cgi::build_env(const str_t& route, int fd) {
  	_path_translated += route;
  	_script_name += route;
  	_script_filename += route;
-	_fill_remote_vars(fd);
+	_fill_remote_vars(socket);
 	_insert_env_vars();
 }
 
@@ -184,6 +184,8 @@ bool	Cgi::treat_cgi_output(str_t &buffer) {
 		buffer += "Date: " + time;
 	//if (buffer.find("Date") != std::string::npos)
 	//to do : Connection Close or keep alive ?
+	if (buffer.find("Connection: ") == std::string::npos)
+		buffer += "Connection: Keep-Alive" CRLF;
 	if (buffer.find("Content-Length: ") == std::string::npos)
 		buffer += "Content-Length: " + _itoa(length) + CRLF;
 	buffer += CRLF;

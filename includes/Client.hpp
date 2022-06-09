@@ -25,20 +25,20 @@ class	Client {
 		Client(const servers_t& serv);
 		~Client();
 
-		void	init();
+		void	clear();
 
 		int			get_state() const;
 		Request*	get_request();
 		Response*	get_response();
 
+		void	set_state(int state);
 		void	set_request(Request* request);
 		void	set_response(Response* response);
 
 		const Server*	search_requested_domain() const;
 
 		void	process_req(const str_t& raw);
-		void	process_res(int fd);
-		void	send(int socket);
+		void	process_res();
 
 		str_t	raw_data;
 
@@ -47,7 +47,7 @@ class	Client {
 		Client(const Client&);
 		Client&	operator=(const Client&);
 
-		bool	_request_time_error();
+		bool	_route_error(str_t& route);
 
 		int			_state;
 		Request*	_request;

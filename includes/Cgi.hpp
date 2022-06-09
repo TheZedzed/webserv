@@ -1,9 +1,8 @@
-
 #pragma once
 
 # ifndef CGI_HPP
 # define CGI_HPP
-# include "Base.hpp"
+
 # include "Request.hpp"
 
 /*
@@ -14,18 +13,17 @@
 ** format HTTP response with CGI response
 ** write to client socket
 */
-
-
-
 class	Cgi {
 	public:
+		typedef std::vector<char *> cgi_env_t;
+
 		Cgi(const Request& req, const str_t& path);
 		~Cgi();
-		void	build_env(const str_t& route, int fd);
+
+		void	build_env(const str_t& route, int socket);
 		bool	exec_cgi(const str_t& route);
 		bool	treat_cgi_output(str_t &buffer);
 
-		typedef std::vector<char *> cgi_env_t;	
 	private:
 		void	_find_and_fill_req_field(const str_t& to_find, str_t& to_fill);
 		void	_fill_remote_vars(int socketfd);
@@ -61,11 +59,5 @@ class	Cgi {
 		static str_t _gateway_interface;
 		static str_t _server_software;
 };
-
-/*
- * Build env for CGI execve : Need Request
- * 
- *
- */
 
 #endif

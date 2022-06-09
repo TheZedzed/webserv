@@ -3,10 +3,6 @@
 # ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
-#include <dirent.h>
-
-#include <ftw.h>
-
 #include "Client.hpp"
 
 /*
@@ -16,7 +12,7 @@
 */
 class	Response {
 	public:
-		Response(const Server* server, const Request* request, str_t& raw);
+		Response(const int socket, const Server* server, const Request* request, str_t& raw);
 		~Response();
 
 		int	get_code() const;
@@ -26,22 +22,23 @@ class	Response {
 
 		void	error_response(int code);
 		void	process_delete(const str_t& path);
-		void	process_method(const Location* uri_loc, const str_t& route, int fd);
-		void	process_post(const Location* uri_loc, const str_t& route, int fd);
+		void	process_method(const Location* uri_loc, const str_t& route);
+		void	process_post(const Location* uri_loc, const str_t& route);
 		void	process_get(const Location* uri_loc, const str_t& route);
-		str_t	fetch_mime(int code);
 
 	private:
 		Response();
 		Response(const Response&);
 		Response&	operator=(const Response&);
 
+		str_t	_fetch_mime(int code);
 		void	_set_header(int code, const str_t* redir = NULL);
 		bool	_method_allowed(const Location* uri_loc, const str_t& method) const;
 		bool	_extract_content(const str_t* path);
 		bool	_extract_directory(const str_t& route, const str_t& subroute);
 
 		str_t&			_buffer;
+		const int		_socket;
 		const Server*	_server;
 		const Request*	_request;
 };

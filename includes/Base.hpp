@@ -18,6 +18,8 @@
 # include <unistd.h>
 # include <signal.h>
 # include <errno.h>
+# include <dirent.h>
+# include <ftw.h>
 
 # include <ctime>
 # include <fstream>

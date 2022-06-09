@@ -4,7 +4,7 @@
 static str_t	get_path(const str_t& uri)
 { return uri.substr(0, uri.find_last_of('?')); }
 
-Response::Response(const Server* serv, const Request* req, str_t& raw) :  _buffer(raw), _server(serv), _request(req)
+Response::Response(const int fd, const Server* serv, const Request* req, str_t& raw) :  _buffer(raw), _socket(fd), _server(serv), _request(req)
 { std::cout << "Create Response" << std::endl; }
 
 Response::~Response()
@@ -25,7 +25,7 @@ bool	Response::_method_allowed(const Location* uri_loc, const str_t& method) con
 	return false;
 }
 
-str_t	Response::fetch_mime(int code) {
+str_t	Response::_fetch_mime(int code) {
 	Request::fields_t::const_iterator	it;
 	str_t	path;
 	size_t	pos;
@@ -92,7 +92,7 @@ void	Response::_set_header(int code, const str_t* redir) {
 	data += "HTTP/1.1 " + _itoa(code) + " " + code_g[code] + CRLF;
 	data += "Server: " SERVER CRLF;
 	data += "Date: " + time;
-	data += "\nContent-Type: " + fetch_mime(code) + CRLF;
+	data += "\nContent-Type: " + _fetch_mime(code) + CRLF;
 	data += "Content-Length: " + _itoa(_buffer.size()) + CRLF;
 	if (redir)
 		data += "Location: " + (*redir) + CRLF;
@@ -156,14 +156,15 @@ void	Response::process_delete(const str_t& path) {
 	return ;
 }
 
-void	Response::process_post(const Location* uri_loc, const str_t& route, int fd) {
+void	Response::process_post(const Location* uri_loc, const str_t& route) {
 	if (uri_loc->get_cgi().empty())
 		return error_response(501);
 	Cgi cgi(*_request, uri_loc->get_cgi());
-	cgi.build_env(route, fd);
+	cgi.build_env(route, _socket);
 	if (cgi.exec_cgi(route))
 		return error_response(500);
 	cgi.treat_cgi_output(_buffer);
+
 }
 
 void	Response::error_response(int code) {
@@ -198,15 +199,17 @@ const Location*	Response::construct_route(str_t& route) const {
 		pos = path.find_last_of('/', pos);
 		it = get_server()->get_routes().find(path.substr(0, pos + 1));
 		if (it != get_server()->get_routes().end()) {
-			route = it->second->get_root() + path.substr(pos + 1);
+			route = it->second->get_root() + path.substr(pos + 1); {
+			std::cout << "ROUTE: " << route << '\n';
 			return it->second;
+			}
 		}
 		pos ? pos -= 1 : 0;
 	} while (pos);
 	return NULL;
 }
 
-void	Response::process_method(const Location* uri_loc, const str_t& route, int fd) {
+void	Response::process_method(const Location* uri_loc, const str_t& route) {
 	str_t	method;
 	bool	redir;
 
@@ -221,7 +224,7 @@ void	Response::process_method(const Location* uri_loc, const str_t& route, int f
 			_set_header(301, &uri_loc->get_redir().second);
 	}
 	else if (method == "POST")
-		process_post(uri_loc, route, fd);
+		process_post(uri_loc, route);
 	else if (method == "GET")
 		process_get(uri_loc, route);
 	else if (method == "DELETE")

@@ -13,6 +13,7 @@ Connection::Connection(int fd, int type, const servers_t& servers) : _fd(fd), _t
 Connection::~Connection() {
 	if (_type == CLIENT)
 		delete _data._client;
+	close(_fd);
 }
 
 int	Connection::get_fd() const
@@ -46,7 +47,7 @@ bool	Connection::arm_timer() {
 	struct itimerspec	its;
 
 	bzero(&its, sizeof(itimerspec));
-	its.it_value.tv_sec = 300;
+	its.it_value.tv_sec = 10;
 	its.it_value.tv_nsec = 1 / 100000000;
 	if (timer_settime(_timerid, CLOCK_REALTIME, &its, NULL) == -1)
 		return FAILURE;
@@ -58,31 +59,35 @@ bool	Connection::send_and_close() {
 	size_t	found;
 
 	client = _data._client;
-	client->process_res(_fd);
-	send(_fd, client->raw_data.c_str(), client->raw_data.size(), 0);
-	(void)found;
-/*	found = client->raw_data.find("Connection: close");
-	if (found != std::string::npos)
-		return true;
-	client->init();*/
+	client->process_res();
+	if (!(client->get_state() & DECONNECT)) {
+		send(_fd, client->raw_data.c_str(), client->raw_data.size(), 0);
+		found = client->raw_data.find("Connection: close");
+		if (found != std::string::npos) {
+			client->set_state(DECONNECT);
+			return true;
+		}
+		client->clear();
+		return false;
+	}
 	return true;
 }
 
 int	Connection::retrieve_request() {
 	Client*	client;
 	char	buf[256];
-	int		state;
 	int		rlen;
 
 	client = _data._client;
 	while ((rlen = recv(_fd, buf, 255, 0)) > 0) {
 		buf[rlen] = 0;
 		client->process_req(str_t(buf, rlen));
-		state = client->get_state();
-		if ((state & ERROR) || (state & RESPONSE))
+		if ((client->get_state() & ERROR) || (client->get_state() & RESPONSE))
 			break ;
 	}
-	if (rlen == 0)
-		return DECONNECT;
-	return state;
+	if (rlen == 0) {
+		std::cout << "Client deconnected" << std::endl;
+		client->set_state(DECONNECT);
+	}
+	return client->get_state();
 }

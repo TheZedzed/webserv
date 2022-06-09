@@ -19,8 +19,6 @@
 */
 class	HttpContext {
 	public:
-		typedef std::map<timer_t, Connection*>	timers_t;
-
 		HttpContext(const char* conf_file);
 		~HttpContext();
 
@@ -35,11 +33,9 @@ class	HttpContext {
 		HttpContext(const HttpContext&);
 		HttpContext&	operator=(const HttpContext&);
 
-		bool	_add_client(int socket);
-		bool	_mod_client();
-		bool	_del_client();
+		void	_add_client(int socket);
+		void	_mod_client();
 
-		timers_t		_timers;
 		const Parser*	_parser;
 		Multiplexer		_multiplexer;
 };
