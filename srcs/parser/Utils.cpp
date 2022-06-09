@@ -148,6 +148,7 @@ static void		default_pages() {
 static void		mimes_types(){
 	mime_g["aac"]		= "audio/aac";
 	mime_g["mp3"]		= "audio/mp3";
+	mime_g["amr"]		= "audio/amr";
 	mime_g["abw"]		= "application/x-abiword";
 	mime_g["arc"]		= "application/octet-stream";
 	mime_g["avi"]		= "video/x-msvideo";
