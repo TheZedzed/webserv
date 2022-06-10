@@ -50,6 +50,19 @@ const strs_t&	Request::get_rl() const
 const Request::fields_t&	Request::get_headers() const
 { return _headers; }
 
+static void url_decode(str_t& url) {
+	std::string	value;
+	size_t		pos = 0;
+
+	while ((pos = url.find("%", pos)) != std::string::npos) {
+		value = url.substr(pos+1, 2);
+		value = std::strtol(value.c_str(), 0, 16);
+		url.erase(pos, 3);
+		url.insert(pos, 1, *value.c_str());
+		++pos;
+	}
+}
+
 int	Request::_rline_checker() {
 	int		err;
 
@@ -58,6 +71,7 @@ int	Request::_rline_checker() {
 	err = _bad_version(_start);
 	if (err != HEADER)
 		return err;
+	url_decode(_start[1]);
 	return HEADER;
 }
 
