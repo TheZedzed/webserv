@@ -118,6 +118,8 @@ void	Response::process_get(const Location* uri_loc, const str_t& route) {
 		else
 			_set_header(200);
 	}
+	else if (!uri_loc->get_cgi().empty() && (route.find(".py") != std::string::npos || route.find(".php") != std::string::npos))
+		return _process_cgi(uri_loc, route);
 	else if (_extract_content(&route) == FAILURE)
 		error_response(500);
 	else
@@ -156,15 +158,17 @@ void	Response::process_delete(const str_t& path) {
 	return ;
 }
 
+void	Response::_process_cgi(const Location* uri_loc, const str_t& route) {
+	Cgi cgi(*_request, uri_loc->get_cgi());
+	cgi.build_env(route, _socket);
+	if (cgi.exec_cgi(route) || cgi.treat_cgi_output(_buffer))
+		error_response(500);
+}
+
 void	Response::process_post(const Location* uri_loc, const str_t& route) {
 	if (uri_loc->get_cgi().empty())
 		return error_response(501);
-	Cgi cgi(*_request, uri_loc->get_cgi());
-	cgi.build_env(route, _socket);
-	if (cgi.exec_cgi(route))
-		return error_response(500);
-	cgi.treat_cgi_output(_buffer);
-
+	_process_cgi(uri_loc, route);
 }
 
 void	Response::error_response(int code) {

@@ -36,6 +36,7 @@ class	Response {
 		bool	_method_allowed(const Location* uri_loc, const str_t& method) const;
 		bool	_extract_content(const str_t* path);
 		bool	_extract_directory(const str_t& route, const str_t& subroute);
+		void	_process_cgi(const Location* uri_loc, const str_t& route);
 
 		str_t&			_buffer;
 		const int		_socket;

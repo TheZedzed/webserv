@@ -109,11 +109,12 @@ bool    Cgi::exec_cgi(const str_t& route) {
 	int		status;
 
 	_out = open(Cgi::_outfile_name.c_str(), O_RDWR | O_CREAT, 0644);
-	_in = open(Cgi::_infile_name.c_str(), O_WRONLY | O_CREAT, 0644);
-	if (_out == -1 || _in == -1)
+	std::ofstream stream(Cgi::_infile_name.c_str());
+	if (_out == -1 || !stream.is_open())
 			return FAILURE;
-	write(_in, _request.get_body().c_str(), _request.get_body().size());
-	close(_in);
+    stream.write(_request.get_body().c_str(), _request.get_body().size());
+	stream.close();
+
 	_in = open(Cgi::_infile_name.c_str(), O_RDONLY);
 	pid = fork();
 	if (pid == -1)
@@ -182,8 +183,7 @@ bool	Cgi::treat_cgi_output(str_t &buffer) {
 		buffer += "Server: " SERVER CRLF;
 	if (buffer.find("Date: ") == std::string::npos)
 		buffer += "Date: " + time;
-	//if (buffer.find("Date") != std::string::npos)
-	//to do : Connection Close or keep alive ?
+
 	if (buffer.find("Connection: ") == std::string::npos)
 		buffer += "Connection: Keep-Alive" CRLF;
 	if (buffer.find("Content-Length: ") == std::string::npos)
@@ -192,32 +192,5 @@ bool	Cgi::treat_cgi_output(str_t &buffer) {
 	buffer.append(buffer_body, length);
 
 	output.close();
-	return 1;
-	//C8NT_TENTYPE
-	//CUSTOM HEADER: "Contnent-type:"
-	//DATE:
-	//Content-length:
-
-
-
-/*
-	data += "HTTP/1.1 " + _itoa(code) + " " + code_g[code] + CRLF;
-	data += "Server: " SERVER CRLF;
-	data += "Date: " + time;
-	data += "\nContent-Type: " + _fetch_mime(code) + CRLF;
-	data += "Content-Length: " + _itoa(_buffer.size()) + CRLF;
-	if (redir)
-		data += "Location: " + (*redir) + CRLF;
-	if (redir || code == 200 || code == ERR_403 || code == ERR_405)
-		data += "Connection: Keep-alive" CRLF CRLF;
-	else
-		data += "Connection: close" CRLF CRLF;
-	data += _buffer;
-	_buffer = data; */
-
-	// unlink(outfile_name.c_str());
-	// 	str_t	data;
-	// str_t	time;
-
-	// _buffer = data;
+	return SUCCESS;
 }

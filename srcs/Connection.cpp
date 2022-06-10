@@ -47,7 +47,7 @@ bool	Connection::arm_timer() {
 	struct itimerspec	its;
 
 	bzero(&its, sizeof(itimerspec));
-	its.it_value.tv_sec = 10;
+	its.it_value.tv_sec = 60;
 	its.it_value.tv_nsec = 1 / 100000000;
 	if (timer_settime(_timerid, CLOCK_REALTIME, &its, NULL) == -1)
 		return FAILURE;
