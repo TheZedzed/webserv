@@ -28,6 +28,8 @@ class	Cgi {
 		void	_find_and_fill_req_field(const str_t& to_find, str_t& to_fill);
 		void	_fill_remote_vars(int socketfd);
 		void	_insert_env_vars(void);
+		void	_add_headers(str_t &buffer, str_t& status, size_t length);
+		void	_extract_headers(std::ifstream& output, str_t &buffer, str_t& status);
 
 		cgi_env_t		_env;
 		const   Request& _request;

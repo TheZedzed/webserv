@@ -141,36 +141,20 @@ bool    Cgi::exec_cgi(const str_t& route) {
 	return SUCCESS;
 }
 
-bool	Cgi::treat_cgi_output(str_t &buffer) {
-	std::ifstream output;
+void	Cgi::_extract_headers(std::ifstream& output, str_t &buffer, str_t& status) {
 	str_t	line;
-	str_t	status;
 
-	output.open(Cgi::_outfile_name.c_str());
-	if (output.fail())
-		return FAILURE;
-	//HEADERS
-	status = "200 OK"  CRLF;
 	while(std::getline(output, line) && line != "\r")
 	{
 		line.push_back('\n');
 		if (line.find("Status: ") == 0)
 			status = line.substr(8);
 		else
-			buffer += line;
+			buffer.append(line);
 	}
-	//BODY
-	size_t pos;
-	size_t length;
+}
 
-	pos = output.tellg();
-	output.seekg(0, output.end);
-	length = (size_t)output.tellg() - (size_t)pos;
-	output.seekg(pos, output.beg);
-	char buffer_body[length + 1];
-	buffer_body[length + 1] = '\0';
-	output.readsome(buffer_body, length);
-
+void	Cgi::_add_headers(str_t &buffer, str_t& status, size_t length) {
 	str_t date;
 	str_t time;
 
@@ -189,8 +173,30 @@ bool	Cgi::treat_cgi_output(str_t &buffer) {
 	if (buffer.find("Content-Length: ") == std::string::npos)
 		buffer += "Content-Length: " + _itoa(length) + CRLF;
 	buffer += CRLF;
-	buffer.append(buffer_body, length);
+}
 
+bool	Cgi::treat_cgi_output(str_t &buffer) {
+	std::ifstream	output;
+	str_t			status;
+	size_t			pos;
+	size_t			length;
+	char			*buffer_body;
+
+	output.open(Cgi::_outfile_name.c_str());
+	if (output.fail())
+		return FAILURE;
+	status = "200 OK"  CRLF;
+	_extract_headers(output, buffer, status);
+	pos = output.tellg();
+	output.seekg(0, output.end);
+	length = (size_t)output.tellg() - (size_t)pos;
+	output.seekg(pos, output.beg);
+	buffer_body = new char [length + 1];
+	buffer_body[length + 1] = '\0';
+	output.readsome(buffer_body, length);
+	_add_headers(buffer,status, length);
+	buffer.append(buffer_body, length);
 	output.close();
+	delete buffer_body;
 	return SUCCESS;
 }

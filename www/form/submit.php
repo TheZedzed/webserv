@@ -21,6 +21,9 @@
 		}
 		h1 {
 			color: white;
+			text-align: center;
+			width: 50%;
+			margin: auto;
 		}
 		#cookie {
 			font-size: 42px;
@@ -43,14 +46,12 @@
 			<button type="submit">Submit</button></br>
 		</form>
 	</div>
-	<?php if (isset($_POST['field_one']) && isset($_POST['field_two'])) { ?>
-	<h1>
-	<?php 	echo("field one = " . htmlspecialchars($_POST['field_one'])); ?>
-	</h1>
-	<h1>
-	<?php	echo("field two = " . htmlspecialchars($_POST['field_two'])); 
-			setcookie("C00K13", htmlspecialchars($_POST['field_three']), time()+30);}?>
-	</h1>
+	<?php if (isset($_POST['field_one']) && isset($_POST['field_two'])) {
+			echo("<h1> field one = " . htmlspecialchars($_POST['field_one']) . "</h1>");
+			echo("<h1> field two = " . htmlspecialchars($_POST['field_two']) . "</h1>");
+			setcookie("C00K13", htmlspecialchars($_POST['field_three']), time() + 30);
+		}
+	?>
 	<div id="cookie">
 	</div>
 	<p style="margin-top:15px; font-style:italic; text-align: center; color: darkgray;">
@@ -60,9 +61,8 @@
 <script>
 	var cook = document.getElementById('cookie');
 	var cookies = document.cookie;
-	console.log(cookies);
 	if (!cookies)
-		cook.textContent = "There are no cookies set.";	
+		cook.textContent = "There are no cookies set.";
 	else
 		cook.textContent = document.cookie;
 </script>

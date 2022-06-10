@@ -104,6 +104,12 @@ void	Response::_set_header(int code, const str_t* redir) {
 	_buffer = data;
 }
 
+inline bool ends_with(const str_t& value,const str_t& ending)
+{
+	if (ending.size() > value.size()) return false;
+		return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 void	Response::process_get(const Location* uri_loc, const str_t& route) {
 	bool	autoindex;
 	str_t	subroute;
@@ -118,8 +124,9 @@ void	Response::process_get(const Location* uri_loc, const str_t& route) {
 		else
 			_set_header(200);
 	}
-	else if (!uri_loc->get_cgi().empty() && (route.find(".py") != std::string::npos || route.find(".php") != std::string::npos))
+	else if (!uri_loc->get_cgi().empty() && (ends_with(route, ".php") || ends_with(route, ".py"))) {
 		return _process_cgi(uri_loc, route);
+	}
 	else if (_extract_content(&route) == FAILURE)
 		error_response(500);
 	else
@@ -159,14 +166,17 @@ void	Response::process_delete(const str_t& path) {
 }
 
 void	Response::_process_cgi(const Location* uri_loc, const str_t& route) {
-	Cgi cgi(*_request, uri_loc->get_cgi());
+	str_t	bin = uri_loc->get_cgi();
+	*route.rbegin() == 'p' ? bin += "php-cgi" : bin += "python3";
+	Cgi cgi(*_request, bin);
+
 	cgi.build_env(route, _socket);
 	if (cgi.exec_cgi(route) || cgi.treat_cgi_output(_buffer))
 		error_response(500);
 }
 
 void	Response::process_post(const Location* uri_loc, const str_t& route) {
-	if (uri_loc->get_cgi().empty())
+	if (uri_loc->get_cgi().empty() && !(ends_with(route, ".php") || ends_with(route, ".py")))
 		return error_response(501);
 	_process_cgi(uri_loc, route);
 }
