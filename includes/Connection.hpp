@@ -13,17 +13,17 @@ class	Connection {
 		Connection(int fd, int type, const servers_t& servers);
 		~Connection();
 
-		Client*	get_client();
-
-		int					get_fd() const;
-		timer_t				get_timer() const;
-		bool				get_type() const;
+		int			get_fd() const;
+		bool		get_type() const;
+		Client*		get_client();
 		const servers_t&	get_servers() const;
 
-		bool	arm_timer();
-		bool	create_timer();
-		bool	send_and_close();
-		int		retrieve_request();
+		void	arm_timer();
+		void	send_response();
+		void	retrieve_request();
+
+		int		_state;
+		timer_t	_timerid;
 
 	private:
 		Connection();
@@ -40,7 +40,6 @@ class	Connection {
 		const int	_fd;
 		const bool	_type;
 		data_u		_data;
-		timer_t		_timerid;
 };
 
 #endif

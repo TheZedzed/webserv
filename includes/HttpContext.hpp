@@ -34,6 +34,7 @@ class	HttpContext {
 		HttpContext&	operator=(const HttpContext&);
 
 		void	_add_client(int socket);
+		bool	_skip_event();
 		void	_mod_client();
 
 		const Parser*	_parser;

@@ -8,28 +8,18 @@ static str_t&	_clean(str_t& str) {
 	return str;
 }
 
-static bool	_bad_method(const str_t& str) {
+static bool	_bad_rline(const strs_t& rline) {
 	str_t::const_iterator	it;
 
-	for (it = str.begin(); it != str.end(); ++it) {
+	if (rline.size() != 3)
+		return true;
+	for (it = rline[0].begin(); it != rline[0].end(); ++it) {
 		if (!isupper(*it))
 			return true;
 	}
+	if (rline[1][0] != '\'')
+		return true;
 	return false;
-}
-
-static bool	_bad_uri(const str_t& str)
-{ return str[0] != '/'; }
-
-static int	_bad_version(const strs_t& str) {
-	if (str[2].substr(0, 5) != "HTTP/") {
-		if (str[0] != "GET" || str[0] != "POST" || str[0] != "DELETE")
-			return ERROR | ERR_400;
-		return ERROR | ERR_404;
-	}
-	else if (str[2].substr(5) != "1.1")
-		return ERROR | ERR_505;
-	return HEADER;
 }
 
 Request::Request() : _chunked(false)
@@ -51,22 +41,24 @@ const Request::fields_t&	Request::get_headers() const
 { return _headers; }
 
 int	Request::_rline_checker() {
-	int		err;
-
-	if (_start.size() != 3 || _bad_method(_start[0]) || _bad_uri(_start[1]))
-		return ERROR | ERR_400;
-	err = _bad_version(_start);
-	if (err != HEADER)
-		return err;
+	if (_bad_rline(_start))
+		return RESPONSE | ERROR | ERR_400;
+	if (_start[2].substr(0, 5) != "HTTP/") {
+		if (_start[0] != "GET" || _start[0] != "POST" || _start[0] != "DELETE")
+			return RESPONSE | ERROR | ERR_400;
+		return RESPONSE | ERROR | ERR_404;
+	}
+	else if (_start[2].substr(5) != "1.1")
+		return RESPONSE | ERROR | ERR_505;
 	return HEADER;
 }
 
 int	Request::_headers_checker() {
 	if (_headers.find("host") == _headers.end())
-		return ERROR | ERR_400;
+		return RESPONSE | ERROR | ERR_400;
 	else if (_headers.find("transfer-encoding") != _headers.end()) {
 		if (_headers.find("transfer-encoding")->second != "chunked")
-			return ERROR | ERR_501;
+			return RESPONSE | ERROR | ERR_501;
 		_chunked = true;
 		return BODY;
 	}

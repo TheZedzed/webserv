@@ -22,25 +22,39 @@ void	HttpContext::timeout(void* ptr) {
 	timerid = reinterpret_cast<timer_t*>(ptr);
 	it = _multiplexer.get_timers().find(*timerid);
 	if (it != _multiplexer.get_timers().end()) {
-		it->second->get_client()->set_state(DECONNECT);
+		it->second->_state = DECONNECT;
 		close(it->second->get_fd());
 	}
 	return ;
 }
 
-void	HttpContext::_mod_client() {
-	const Server*	serv;
-	Response*		res;
-	Client*			cli;
-	int				flag;
+bool	HttpContext::_skip_event() {
+	int	state;
 
-	flag = EPOLLOUT;
+	state = peer->_state;
+	if (new_connection() == false && !(state & DECONNECT)) {
+		if (state & RESET || state & RESPONSE)
+			_mod_client();
+		return false;
+	}
+	return true;
+}
+
+void	HttpContext::_mod_client() {
+	Response*	res;
+	Client*		cli;
+	int			flag;
+
 	cli = peer->get_client();
-	if (cli->get_state() & RQLINE)
+	if (peer->_state & RESET) {
 		flag = EPOLLIN | EPOLLET;
+		cli->clear();
+	}
 	else {
-		serv = cli->search_requested_domain();
-		res = new Response(serv, cli->get_request(), cli->raw_data);
+		flag = EPOLLOUT;
+		res = new Response(cli->raw_data);
+		res->set_request(cli->get_request());
+		res->set_server(cli->requested_server());
 		cli->set_response(res);
 	}
 	_multiplexer.mod_event(peer, flag);
@@ -51,12 +65,10 @@ void	HttpContext::_mod_client() {
 void	HttpContext::_add_client(int fd) {
 	Connection*	connex;
 	Client*		client;
-	timer_t		timer;
 
 	client = new Client(peer->get_servers());
 	connex = new Connection(fd, CLIENT, client);
-	timer = connex->get_timer();
-	_multiplexer.get_timers().insert(std::make_pair(timer, connex));
+	_multiplexer.get_timers().insert(std::make_pair(connex->_timerid, connex));
 	_multiplexer.get_events().insert(std::make_pair(fd, connex));
 	_multiplexer.add_event(connex, EPOLLIN | EPOLLET);
 	return ;
@@ -91,27 +103,21 @@ bool	HttpContext::new_connection() {
 ** send a response to the peer (EPOLLOUT)
 */
 void	HttpContext::worker(void) {
-	int	epoll = _multiplexer.get_instance();
-	int	state;
+	int	epoll;
 	int	nfds;
 
+	epoll = _multiplexer.get_instance();
 	while (1) {
-		if ((nfds = epoll_wait(epoll, events, 256, 1000)) < 0)
+		if ((nfds = epoll_wait(epoll, events, 256, 5000)) < 0)
 			continue ;
 		for (int i = 0; i < nfds; ++i) {
 			peer = reinterpret_cast<Connection*>(events[i].data.ptr);
-			if (new_connection() == true)
+			if (_skip_event() == true)
 				continue ;
-			if (peer->get_client()->get_state() & DECONNECT)
-				continue ;
-			if (events[i].events & EPOLLIN) {
-				state = peer->retrieve_request();
-				if (state & RESPONSE || state & ERROR)
-					_mod_client();
-			}
+			if (events[i].events & EPOLLIN)
+				peer->retrieve_request();
 			if (events[i].events & EPOLLOUT)
-				if (peer->send_and_close() == false)
-					_mod_client();
+				peer->send_response();
 		}
 		_multiplexer.remove_deconnection();
 	}

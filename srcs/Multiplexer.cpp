@@ -89,19 +89,14 @@ void	Multiplexer::mod_event(Connection* el, int flag) {
 }
 
 void	Multiplexer::del_event(Connection* el) {
-	timer_t	timer;
 	int		fd;
 
 	fd = el->get_fd();
 	_events.erase(fd);
+	if (el->get_type() == CLIENT)
+		_timers.erase(el->_timerid);
 	if (epoll_ctl(_instance, EPOLL_CTL_DEL, fd, NULL) == 1)
 		throw std::runtime_error("Failure epoll del\n");
-	if (el->get_type() == CLIENT) {
-		timer = el->get_timer();
-		_timers.erase(timer);
-		if (timer_delete(timer) == -1)
-			throw std::runtime_error("Failure del timer\n");
-	}
 	delete el;
 	return ;
 }
@@ -120,7 +115,6 @@ void	Multiplexer::remove_deconnection() {
 	events_t::const_iterator	save;
 	events_t::const_iterator	it;
 	Connection*	peer;
-	Client*		cli;
 
 	it = _events.begin();
 	while (it != _events.end()) {
@@ -128,8 +122,7 @@ void	Multiplexer::remove_deconnection() {
 		++save;
 		peer = it->second;
 		if (peer && peer->get_type() == CLIENT) {
-			cli = peer->get_client();
-			if (cli->get_state() == DECONNECT)
+			if (peer->_state == DECONNECT)
 				del_event(it->second);
 		}
 		it = save;

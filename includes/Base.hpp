@@ -46,18 +46,19 @@
 # define WR_OP		0x00000010 // need syscall write
 # define RESPONSE 	0x00000020 // process response --> send socket
 # define ERROR		0x00000040 // error handler
-# define DECONNECT	0x00000080 // client deco
+# define DECONNECT	0x00000080 // client deconnection
+# define RESET		0x00000100 // reset connection
 
-# define ERR_400	0X00000100
-# define ERR_403	0X00000200
-# define ERR_404	0X00000400
-# define ERR_405	0X00000800
-# define ERR_413	0X00001000
-# define ERR_414	0X00002000
-# define ERR_500	0X00004000
-# define ERR_501	0X00008000
-# define ERR_505	0X00010000
-# define ERR_411	0X00020000
+# define ERR_400	0X00000200
+# define ERR_403	0X00000400
+# define ERR_404	0X00000800
+# define ERR_405	0X00001000
+# define ERR_413	0X00002000
+# define ERR_414	0X00004000
+# define ERR_500	0X00008000
+# define ERR_501	0X00010000
+# define ERR_505	0X00020000
+# define ERR_411	0X00040000
 
 typedef std::string					str_t;
 typedef std::vector<str_t>			strs_t;

@@ -27,18 +27,15 @@ class	Client {
 
 		void	clear();
 
-		int			get_state() const;
 		Request*	get_request();
 		Response*	get_response();
 
-		void	set_state(int state);
 		void	set_request(Request* request);
 		void	set_response(Response* response);
 
-		const Server*	search_requested_domain() const;
-
-		void	process_req(const str_t& raw);
-		void	process_res();
+		const Server*	requested_server() const;
+		void	process_method(const Location* uri_loc, const str_t& route);
+		void	process_response(int& state);
 
 		str_t	raw_data;
 
@@ -47,9 +44,11 @@ class	Client {
 		Client(const Client&);
 		Client&	operator=(const Client&);
 
-		bool	_route_error(str_t& route);
+		void	_process_delete(const str_t& route);
+		void	_process_redir(const Location* uri_loc);
+		void	_process_post(const Location* uri_loc, const str_t& route);
+		void	_process_get(const Location* uri_loc, const str_t& route);
 
-		int			_state;
 		Request*	_request;
 		Response*	_response;
 		const servers_t	_servers;

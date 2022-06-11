@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _max(1024)
+Server::Server() : _max(1024 * 1024)
 { std::cout << "\t[Create Server]" << std::endl; }
 
 Server::~Server() {
@@ -9,7 +9,7 @@ Server::~Server() {
 	std::cout << "Destroy current server Server..." << std::endl;
 	for (it = _routes.begin(); it != _routes.end(); ++it) {
 		if (it->second)
-			delete it->second; // calls ~Location()
+			delete it->second;
 	}
 }
 

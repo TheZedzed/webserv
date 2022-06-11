@@ -1,18 +1,27 @@
 #include "Connection.hpp"
 
-Connection::Connection(int fd, int type, Client* client) : _fd(fd), _type(type) {
+Connection::Connection(int fd, int type, Client* client) : _state(RQLINE), _fd(fd), _type(type) {
+	struct sigevent	sev;
+
 	_data._client = client;
-	if (create_timer() == FAILURE)
+	bzero(&sev, sizeof(sigevent));
+	sev.sigev_notify = SIGEV_SIGNAL;
+	sev.sigev_signo = SIGALRM;
+	sev.sigev_value.sival_ptr = &_timerid;
+	if (timer_create(CLOCK_REALTIME, &sev, &_timerid) == -1)
 		throw std::runtime_error("Failure timer create\n");
 	arm_timer();
 }
 
-Connection::Connection(int fd, int type, const servers_t& servers) : _fd(fd), _type(type)
+Connection::Connection(int fd, int type, const servers_t& servers) : _state(-1), _timerid(NULL), _fd(fd), _type(type)
 { _data._servers = &servers; }
 
 Connection::~Connection() {
-	if (_type == CLIENT)
+	if (_type == CLIENT) {
 		delete _data._client;
+		if (timer_delete(_timerid) == -1)
+			throw std::runtime_error("Failure del timer\n");
+	}
 	close(_fd);
 }
 
@@ -22,72 +31,60 @@ int	Connection::get_fd() const
 bool	Connection::get_type() const
 { return _type; }
 
-timer_t	Connection::get_timer() const
-{ return _timerid; }
-
 const Connection::servers_t&	Connection::get_servers() const
 { return *_data._servers; }
 
 Client*	Connection::get_client()
 { return _data._client; }
 
-bool	Connection::create_timer() {
-	struct sigevent	sev;
-
-	bzero(&sev, sizeof(sigevent));
-	sev.sigev_notify = SIGEV_SIGNAL;
-	sev.sigev_signo = SIGALRM;
-	sev.sigev_value.sival_ptr = &_timerid;
-	if (timer_create(CLOCK_REALTIME, &sev, &_timerid) == -1)
-		return FAILURE;
-	return SUCCESS;
-}
-
-bool	Connection::arm_timer() {
+void	Connection::arm_timer() {
 	struct itimerspec	its;
 
 	bzero(&its, sizeof(itimerspec));
 	its.it_value.tv_sec = 10;
 	its.it_value.tv_nsec = 1 / 100000000;
 	if (timer_settime(_timerid, CLOCK_REALTIME, &its, NULL) == -1)
-		return FAILURE;
-	return SUCCESS;
+		throw std::runtime_error("Failure arm tier!");
 }
 
-bool	Connection::send_and_close() {
+void	Connection::send_response() {
 	Client*	client;
 	size_t	found;
 
 	client = _data._client;
-	client->process_res();
-	if (!(client->get_state() & DECONNECT)) {
+	if (!(_state & DECONNECT)) {
+		client->process_response(_state);
 		send(_fd, client->raw_data.c_str(), client->raw_data.size(), 0);
 		found = client->raw_data.find("Connection: close");
-		if (found != std::string::npos) {
-			client->set_state(DECONNECT);
-			return true;
-		}
-		client->clear();
-		return false;
+		if (found != std::string::npos)
+			_state = DECONNECT;
+		else
+			_state = RESET;
 	}
-	return true;
+	return ;
 }
 
-int	Connection::retrieve_request() {
-	Client*	client;
+void	Connection::retrieve_request() {
+	Request*	request;
+	Client*		client;
 	char	buf[256];
 	int		rlen;
 
 	client = _data._client;
+	request = client->get_request();
 	while ((rlen = recv(_fd, buf, 255, 0)) > 0) {
 		buf[rlen] = 0;
-		client->process_req(str_t(buf, rlen));
-		if ((client->get_state() & ERROR) || (client->get_state() & RESPONSE))
+		client->raw_data.append(str_t(buf, rlen));
+		if (_state & RQLINE)
+			_state = request->process_rl(client->raw_data);
+		if (_state & HEADER)
+			_state = request->process_head(client->raw_data);
+		if (_state & BODY)
+			_state = request->process_body(client->raw_data);
+		if (_state & RESPONSE)
 			break ;
 	}
-	if (rlen == 0) {
+	if (rlen == 0 && (_state = DECONNECT))
 		std::cout << "Client deconnected" << std::endl;
-		client->set_state(DECONNECT);
-	}
-	return client->get_state();
+	return ;
 }
