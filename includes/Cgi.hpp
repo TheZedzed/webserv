@@ -29,7 +29,7 @@ class	Cgi {
 		void	_fill_remote_vars(int socketfd);
 		void	_insert_env_vars(void);
 		void	_add_headers(str_t &buffer, str_t& status, size_t length);
-		void	_extract_headers(std::ifstream& output, str_t &buffer, str_t& status);
+		void	_extract_headers(str_t &buffer, str_t& status);
 
 		cgi_env_t		_env;
 		const   Request& _request;
@@ -53,6 +53,8 @@ class	Cgi {
 		str_t 	_cookie;
 		str_t	_remote_port;
 		str_t	_remote_address;
+
+		std::fstream	_stream;
 
 		static str_t _outfile_name;
 		static str_t _infile_name;

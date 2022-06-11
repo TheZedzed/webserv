@@ -109,11 +109,11 @@ bool    Cgi::exec_cgi(const str_t& route) {
 	int		status;
 
 	_out = open(Cgi::_outfile_name.c_str(), O_RDWR | O_CREAT, 0644);
-	std::ofstream stream(Cgi::_infile_name.c_str());
-	if (_out == -1 || !stream.is_open())
+	_stream.open(Cgi::_infile_name.c_str(), std::ios_base::out);
+	if (_out == -1 || !_stream.is_open())
 			return FAILURE;
-    stream.write(_request.get_body().c_str(), _request.get_body().size());
-	stream.close();
+    _stream.write(_request.get_body().c_str(), _request.get_body().size());
+	_stream.close();
 
 	_in = open(Cgi::_infile_name.c_str(), O_RDONLY);
 	pid = fork();
@@ -141,10 +141,10 @@ bool    Cgi::exec_cgi(const str_t& route) {
 	return SUCCESS;
 }
 
-void	Cgi::_extract_headers(std::ifstream& output, str_t &buffer, str_t& status) {
+void	Cgi::_extract_headers(str_t &buffer, str_t& status) {
 	str_t	line;
 
-	while(std::getline(output, line) && line != "\r")
+	while(std::getline(_stream, line) && line != "\r")
 	{
 		line.push_back('\n');
 		if (line.find("Status: ") == 0)
@@ -176,27 +176,26 @@ void	Cgi::_add_headers(str_t &buffer, str_t& status, size_t length) {
 }
 
 bool	Cgi::treat_cgi_output(str_t &buffer) {
-	std::ifstream	output;
 	str_t			status;
 	size_t			pos;
 	size_t			length;
 	char			*buffer_body;
 
-	output.open(Cgi::_outfile_name.c_str());
-	if (output.fail())
+	_stream.open(Cgi::_outfile_name.c_str(), std::ios_base::in);
+	if (_stream.fail())
 		return FAILURE;
 	status = "200 OK"  CRLF;
-	_extract_headers(output, buffer, status);
-	pos = output.tellg();
-	output.seekg(0, output.end);
-	length = (size_t)output.tellg() - (size_t)pos;
-	output.seekg(pos, output.beg);
+	_extract_headers(buffer, status);
+	pos = _stream.tellg();
+	_stream.seekg(0, _stream.end);
+	length = (size_t)_stream.tellg() - (size_t)pos;
+	_stream.seekg(pos, _stream.beg);
 	buffer_body = new char [length + 1];
 	buffer_body[length + 1] = '\0';
-	output.readsome(buffer_body, length);
+	_stream.readsome(buffer_body, length);
 	_add_headers(buffer,status, length);
 	buffer.append(buffer_body, length);
-	output.close();
+	_stream.close();
 	delete buffer_body;
 	return SUCCESS;
 }
