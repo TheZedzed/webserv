@@ -27,7 +27,7 @@ static str_t	_fetch_mime(const str_t& route, int code) {
 }
 
 static bool _treat_cgi(const Response* res, int state) {
-	static const char*	endings[3] = {"php", "py", NULL};
+	static const char*	endings[3] = {".php", ".py", NULL};
 	const Location*	loc = res->get_location();
 	str_t	path = res->get_path();
 	size_t	found;
@@ -82,7 +82,7 @@ void	Client::_process_method(Response* res, int socket, int& state) {
 	else if (loc->get_redir().first > 0)
 		raw_data += res->process_redir(state);
 	else if (_treat_cgi(res, state))
-		raw_data += res->process_cgi(socket, state, raw_data);
+		res->process_cgi(socket, state, raw_data);
 	else if (method == "GET")
 		raw_data += res->process_get(state);
 	else if (method == "DELETE")

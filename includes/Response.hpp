@@ -25,9 +25,9 @@ class	Response {
 		bool	construct_path(int& state);
 
 		str_t	extract_content(int& state);
-		str_t	extract_directory(const str_t& path, int& state);
+		str_t	extract_directory(int& state);
 
-		str_t	process_cgi(int socket, int& state, str_t& raw);
+		void	process_cgi(int socket, int& state, str_t& raw);
 		str_t	error_response(int& state);
 		str_t	process_delete(int& state);
 		str_t	process_redir(int& state);

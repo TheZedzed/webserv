@@ -32,14 +32,16 @@ const Server*	Connection::_requested_server() const {
 	strs_t::const_iterator		it2;
 	str_t	match;
 
-	it1 = _servers.begin();
-	res = _cli->get_request()->get_headers().find("host");
-	match = res->second.substr(0, res->second.find_last_of(':')); // host: [name:port]
-	for (; it1 != _servers.end(); ++it1) {
-		it2 = (*it1)->get_names().begin();
-		for (; it2 != (*it1)->get_names().end(); ++it2) {
-			if (*it2 == match)
-				return *it1;
+	if (!(_state & ERROR)) {
+		it1 = _servers.begin();
+		res = _cli->get_request()->get_headers().find("host");
+		match = res->second.substr(0, res->second.find_last_of(':')); // host: [name:port]
+		for (; it1 != _servers.end(); ++it1) {
+			it2 = (*it1)->get_names().begin();
+			for (; it2 != (*it1)->get_names().end(); ++it2) {
+				if (*it2 == match)
+					return *it1;
+			}
 		}
 	}
 	return _servers[0];
@@ -68,18 +70,22 @@ void	Connection::arm_timer() {
 }
 
 void	Connection::send_response() {
-	size_t	found;
+	size_t	found1;
+	size_t	found2;
 
 	_cli->set_server(_requested_server());
 	_cli->process_response(_socket, _state);
 	send(_socket, _cli->raw_data.c_str(), _cli->raw_data.size(), 0);
-	found = _cli->raw_data.find("Connection: close");
-	if (found != std::string::npos)
-		_state = DECONNECT;
-	else {
-		_state = RESET;
-		_cli->reset();
+	found1 = _cli->raw_data.find("Connection:");
+	if (found1 != std::string::npos) {
+		found2 = _cli->raw_data.find("Connection: Keep-alive", found1);
+		if (found2 != std::string::npos) {
+			_state = RESET;
+			_cli->reset();
+			return ;
+		}
 	}
+	_state = DECONNECT;
 	return ;
 }
 

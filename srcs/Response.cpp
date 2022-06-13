@@ -61,14 +61,16 @@ str_t	Response::extract_content(int& state) {
 	return res;
 }
 
-str_t	Response::extract_directory(const str_t& subroute, int& state) {
+str_t	Response::extract_directory(int& state) {
 	struct dirent *dirp;
+	str_t	subroute;
 	str_t	res;
 	DIR *dp;
 
+	subroute = _path.substr(_path.size() - _request->get_rl()[1].size());
 	if ((dp = opendir(_path.c_str()))) {
-		res += "<html>\n<head><title>Index of " + _path;
-		res += "</title></head>\n<body>\n<h1>Index of " + _path;
+		res += "<html>\n<head><title>Index of " + subroute;
+		res += "</title></head>\n<body>\n<h1>Index of " + subroute;
 		res += "</h1>\n<hr><pre>\n<a href=\"../\">../</a>\n";
 		while ((dirp = readdir(dp)) != NULL) {
 			if (dirp->d_name[0] != '.') {
@@ -107,6 +109,7 @@ str_t	Response::error_response(int& state) {
 */
 bool	Response::construct_path(int& state) {
 	Server::route_t::const_iterator it;
+	char	buf[4097];
 	str_t	path;
 	str_t	uri;
 	size_t	pos;
@@ -118,7 +121,9 @@ bool	Response::construct_path(int& state) {
 		pos = path.find_last_of('/', pos);
 		it = _server->get_routes().find(path.substr(0, pos + 1));
 		if (it != _server->get_routes().end()) {
-			_path = it->second->get_root() + path.substr(pos + 1);
+			bzero(buf, 4097);
+			_path = getcwd(buf, 4096);
+			_path += it->second->get_root() + path.substr(pos + 1);
 			_location = it->second;
 			break ;
 		}
@@ -128,7 +133,6 @@ bool	Response::construct_path(int& state) {
 }
 
 str_t	Response::process_get(int& state) {
-	str_t	subroute = _path.substr(_location->get_root().size() - 1);
 	bool	autoindex = _location->get_autoindex();
 	bool	directory = *_path.rbegin() == '/';
 	str_t	res;
@@ -138,7 +142,7 @@ str_t	Response::process_get(int& state) {
 		return error_response(state);
 	}
 	else if (directory)
-		res = extract_directory(subroute, state);
+		res = extract_directory(state);
 	else
 		res = extract_content(state);
 	if (state & ERROR)
@@ -147,7 +151,7 @@ str_t	Response::process_get(int& state) {
 	return res;
 }
 
-str_t	Response::process_cgi(int socket, int& state, str_t& raw_data) {
+void	Response::process_cgi(int socket, int& state, str_t& raw_data) {
 	str_t	bin;
 
 	bin = _location->get_cgi();
@@ -156,10 +160,10 @@ str_t	Response::process_cgi(int socket, int& state, str_t& raw_data) {
 	cgi.build_env(_path, socket);
 	if (cgi.exec_cgi(_path) || cgi.treat_cgi_output(raw_data)) {
 		state |= (ERROR | ERR_500);
-		return error_response(state);
+		raw_data = error_response(state);
 	}
 	state = (RESPONSE | ERR_200);
-	return str_t();
+	return ;
 }
 
 str_t	Response::process_delete(int& state) {
