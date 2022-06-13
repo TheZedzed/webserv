@@ -13,13 +13,13 @@ static bool	_bind_socket(int fd, socket_t socket) {
 }
 
 Multiplexer::Multiplexer()
-{ std::cout << "Init multiplexer.." << std::endl; }
+{ std::cout << "Create multiplexer!" << std::endl; }
 
 Multiplexer::~Multiplexer() {
 	events_t::const_iterator	it1;
 	events_t::const_iterator	save;
 
-	std::cout << "Destroy multiplexer.." << std::endl;
+	std::cout << "Destroy multiplexer!" << std::endl;
 	it1 = _events.begin();
 	while (it1 != _events.end()) {
 		save = it1;
@@ -55,7 +55,7 @@ void	Multiplexer::build_events(const Parser::listenners_t& map) {
 			break ;
 		if (listen(socket_fd, 100))
 			break ;
-		connex = new Connection(socket_fd, LISTENNER, it->second);
+		connex = new Connection(socket_fd, SERVERS, it->second);
 		_events.insert(std::make_pair(socket_fd, connex));
 	}
 	if (it != map.end())
@@ -63,10 +63,6 @@ void	Multiplexer::build_events(const Parser::listenners_t& map) {
 	return ;
 }
 
-/*
-** Aim: init epoll instance
-** add servers socket in reading mode
-*/
 void	Multiplexer::start_listenning() {
 	events_t::const_iterator	it;
 
@@ -83,7 +79,7 @@ void	Multiplexer::mod_event(Connection* el, int flag) {
 
 	ev.data.ptr = el;
 	ev.events = flag;
-	if (epoll_ctl(_instance, EPOLL_CTL_MOD, el->get_fd(), &ev) == -1)
+	if (epoll_ctl(_instance, EPOLL_CTL_MOD, el->get_socket(), &ev) == -1)
 		throw std::runtime_error("Failure epoll mod\n");
 	return ;
 }
@@ -91,7 +87,7 @@ void	Multiplexer::mod_event(Connection* el, int flag) {
 void	Multiplexer::del_event(Connection* el) {
 	int		fd;
 
-	fd = el->get_fd();
+	fd = el->get_socket();
 	_events.erase(fd);
 	if (el->get_type() == CLIENT)
 		_timers.erase(el->_timerid);
@@ -106,7 +102,7 @@ void	Multiplexer::add_event(Connection* el, int flag) {
 
 	ev.data.ptr = el;
 	ev.events = flag;
-	if (epoll_ctl(_instance, EPOLL_CTL_ADD, el->get_fd(), &ev) == -1)
+	if (epoll_ctl(_instance, EPOLL_CTL_ADD, el->get_socket(), &ev) == -1)
 		throw std::runtime_error("Failure epoll add\n");
 	return ;
 }

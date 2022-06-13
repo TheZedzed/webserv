@@ -16,26 +16,32 @@
 */
 class	Response {
 	public:
-		Response(str_t& raw);
+		Response(const Server* serv, const Request* req);
 		~Response();
 
-		void	construct_route(const Location** loc, str_t& route) const;
+		const str_t&	get_path() const;
+		const Location*	get_location() const;
 
-		void	set_server(const Server* serv);
-		void	set_request(const Request* req);
-		void	error_response(int code);
+		bool	construct_path(int& state);
 
-		bool	extract_content(const str_t* path);
-		void	set_header(int code, const str_t& path = str_t());
-		bool	extract_directory(const str_t& route, const str_t& subroute);
+		str_t	extract_content(int& state);
+		str_t	extract_directory(const str_t& path, int& state);
+
+		str_t	process_cgi(int socket, int& state, str_t& raw);
+		str_t	error_response(int& state);
+		str_t	process_delete(int& state);
+		str_t	process_redir(int& state);
+		str_t	process_post(int& state);
+		str_t	process_get(int& state);
 
 	private:
 		Response();
 		Response(const Response&);
 		Response&	operator=(const Response&);
 
-		str_t&		_buffer;
-		const Server*	_server;
-		const Request*	_request;
+		str_t	_path; // real url
+		const Server*	_server; // requested server
+		const Request*	_request; // request
+		const Location*	_location; // location rules
 };
 #endif

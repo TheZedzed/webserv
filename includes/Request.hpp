@@ -3,7 +3,7 @@
 # ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include "Base.hpp"
+# include "Parser.hpp"
 
 /*
 ** class HTTP Request:
@@ -14,14 +14,11 @@
 */
 class	Request {
 	public:
-		typedef std::map<str_t, str_t>	fields_t;
-
 		~Request();
 		Request();
 
-		bool	get_chunked() const;
-		const str_t&	get_body() const;
 		const strs_t&	get_rl() const;
+		const str_t&	get_body() const;
 		const fields_t&	get_headers() const;
 
 		int	process_rl(str_t& raw_data);
@@ -38,7 +35,6 @@ class	Request {
 
 		str_t	_body;
 		strs_t	_start;
-		bool	_chunked;
 		fields_t	_headers;
 };
 

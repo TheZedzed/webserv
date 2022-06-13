@@ -17,19 +17,29 @@ static bool	_bad_rline(const strs_t& rline) {
 		if (!isupper(*it))
 			return true;
 	}
-	if (rline[1][0] != '\'')
+	if (rline[1][0] != '/')
 		return true;
 	return false;
 }
 
-Request::Request() : _chunked(false)
+static void url_decode(str_t& url) {
+	std::string	value;
+	size_t		pos = 0;
+
+	while ((pos = url.find("%", pos)) != std::string::npos) {
+		value = url.substr(pos+1, 2);
+		value = std::strtol(value.c_str(), 0, 16);
+		url.erase(pos, 3);
+		url.insert(pos, 1, *value.c_str());
+		++pos;
+	}
+}
+
+Request::Request()
 { std::cout << "Create an http request" << std::endl; }
 
 Request::~Request()
 { std::cout << "Destroy Request" << std::endl; }
-
-bool	Request::get_chunked() const
-{ return _chunked; }
 
 const str_t&	Request::get_body() const
 { return _body; }
@@ -37,7 +47,7 @@ const str_t&	Request::get_body() const
 const strs_t&	Request::get_rl() const
 { return _start; }
 
-const Request::fields_t&	Request::get_headers() const
+const fields_t&	Request::get_headers() const
 { return _headers; }
 
 int	Request::_rline_checker() {
@@ -50,6 +60,7 @@ int	Request::_rline_checker() {
 	}
 	else if (_start[2].substr(5) != "1.1")
 		return RESPONSE | ERROR | ERR_505;
+	url_decode(_start[1]);
 	return HEADER;
 }
 
@@ -59,7 +70,6 @@ int	Request::_headers_checker() {
 	else if (_headers.find("transfer-encoding") != _headers.end()) {
 		if (_headers.find("transfer-encoding")->second != "chunked")
 			return RESPONSE | ERROR | ERR_501;
-		_chunked = true;
 		return BODY;
 	}
 	else if (_headers.find("content-length") != _headers.end())
@@ -119,8 +129,8 @@ int	Request::process_body(str_t& raw_data) {
 	fields_t::const_iterator	it;
 	size_t	len;
 
-	if (!_chunked) {
-		it = _headers.find("content-length");
+	it = _headers.find("content-length");
+	if (it != _headers.end()) {
 		len = _atoi(it->second, 10);
 		_body.append(raw_data);
 		raw_data.clear();

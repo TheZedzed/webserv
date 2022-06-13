@@ -3,7 +3,6 @@
 # ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-# include "Parser.hpp"
 # include "Request.hpp"
 # include "Response.hpp"
 
@@ -19,39 +18,29 @@ class Response;
 */
 class	Client {
 	public:
-		typedef std::vector<Server*>	servers_t;
-		typedef Request::fields_t		fields_t;
-
-		Client(const servers_t& serv);
+		Client();
 		~Client();
 
-		void	clear();
+		const Server*	get_server() const;
+		const Request*	get_request() const;
 
-		Request*	get_request();
-		Response*	get_response();
+		void	set_server(const Server* server);
+		void	set_request(const Request* request);
 
-		void	set_request(Request* request);
-		void	set_response(Response* response);
-
-		const Server*	requested_server() const;
-		void	process_method(const Location* uri_loc, const str_t& route);
-		void	process_response(int& state);
+		void	reset();
+		void	process_request(int& state);
+		void	process_response(int socket, int& state);
+		void	set_headers(const str_t& path, int code);
 
 		str_t	raw_data;
 
 	private:
-		Client();
 		Client(const Client&);
 		Client&	operator=(const Client&);
 
-		void	_process_delete(const str_t& route);
-		void	_process_redir(const Location* uri_loc);
-		void	_process_post(const Location* uri_loc, const str_t& route);
-		void	_process_get(const Location* uri_loc, const str_t& route);
+		void	_process_method(Response* res, int socket, int& state);
 
-		Request*	_request;
-		Response*	_response;
-		const servers_t	_servers;
+		const Server*	_server;
+		const Request*	_request;
 };
-
 #endif

@@ -7,39 +7,34 @@
 
 class	Connection {
 	public:
-		typedef Client::servers_t	servers_t;
+		typedef Parser::servers_t	servers_t;
 
-		Connection(int fd, int type, Client* client);
 		Connection(int fd, int type, const servers_t& servers);
 		~Connection();
 
-		int			get_fd() const;
-		bool		get_type() const;
-		Client*		get_client();
+		bool	get_type() const;
+		int		get_socket() const;
+		const Client*	get_client() const;
 		const servers_t&	get_servers() const;
 
 		void	arm_timer();
 		void	send_response();
 		void	retrieve_request();
 
-		int		_state;
-		timer_t	_timerid;
+		int		_state; // connection state
+		timer_t	_timerid; // connection timer
 
 	private:
 		Connection();
 		Connection(const Connection&);
 		Connection&	operator=(const Connection&);
 
-		union	data_u {
-			Client*				_client;
-			const servers_t*	_servers;
-			~data_u() {}
-			data_u() {}
-		};
+		const Server*	_requested_server() const;
 
-		const int	_fd;
-		const bool	_type;
-		data_u		_data;
+		Client*		_cli; // connection is client or NULL
+		const int	_type; // client or servers
+		const int	_socket; // socket listenning
+		const servers_t&	_servers; // servers listennig on _socket
 };
 
 #endif

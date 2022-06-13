@@ -1,90 +1,102 @@
 #include "Connection.hpp"
 
-Connection::Connection(int fd, int type, Client* client) : _state(RQLINE), _fd(fd), _type(type) {
+Connection::Connection(int fd, int type, const servers_t& servers) : _state(RQLINE), _timerid(NULL), _cli(NULL), _type(type), _socket(fd), _servers(servers) {
+	std::cout << "Init a new connection!" << std::endl;
 	struct sigevent	sev;
 
-	_data._client = client;
 	bzero(&sev, sizeof(sigevent));
-	sev.sigev_notify = SIGEV_SIGNAL;
-	sev.sigev_signo = SIGALRM;
-	sev.sigev_value.sival_ptr = &_timerid;
-	if (timer_create(CLOCK_REALTIME, &sev, &_timerid) == -1)
-		throw std::runtime_error("Failure timer create\n");
-	arm_timer();
+	if (_type == CLIENT) {
+		_cli = new Client();
+		sev.sigev_notify = SIGEV_SIGNAL;
+		sev.sigev_signo = SIGALRM;
+		sev.sigev_value.sival_ptr = &_timerid;
+		if (timer_create(CLOCK_REALTIME, &sev, &_timerid) == -1)
+			throw std::runtime_error("Failure timer create!");
+		arm_timer();
+	}
 }
-
-Connection::Connection(int fd, int type, const servers_t& servers) : _state(-1), _timerid(NULL), _fd(fd), _type(type)
-{ _data._servers = &servers; }
 
 Connection::~Connection() {
+	std::cout << "Remove a connection!" << std::endl;
+
 	if (_type == CLIENT) {
-		delete _data._client;
-		if (timer_delete(_timerid) == -1)
-			throw std::runtime_error("Failure del timer\n");
+		delete _cli;
+		timer_delete(_timerid);
 	}
-	close(_fd);
+	close(_socket);
 }
 
-int	Connection::get_fd() const
-{ return _fd; }
+const Server*	Connection::_requested_server() const {
+	servers_t::const_iterator	it1;
+	fields_t::const_iterator	res;
+	strs_t::const_iterator		it2;
+	str_t	match;
+
+	it1 = _servers.begin();
+	res = _cli->get_request()->get_headers().find("host");
+	match = res->second.substr(0, res->second.find_last_of(':')); // host: [name:port]
+	for (; it1 != _servers.end(); ++it1) {
+		it2 = (*it1)->get_names().begin();
+		for (; it2 != (*it1)->get_names().end(); ++it2) {
+			if (*it2 == match)
+				return *it1;
+		}
+	}
+	return _servers[0];
+}
+
+int	Connection::get_socket() const
+{ return _socket; }
 
 bool	Connection::get_type() const
 { return _type; }
 
-const Connection::servers_t&	Connection::get_servers() const
-{ return *_data._servers; }
+const Client*	Connection::get_client() const
+{ return _cli; }
 
-Client*	Connection::get_client()
-{ return _data._client; }
+const Connection::servers_t&	Connection::get_servers() const
+{ return _servers; }
 
 void	Connection::arm_timer() {
 	struct itimerspec	its;
 
 	bzero(&its, sizeof(itimerspec));
-	its.it_value.tv_sec = 10;
-	its.it_value.tv_nsec = 1 / 100000000;
+	its.it_value.tv_sec = 1000;
+	its.it_value.tv_nsec = 1000 / 100000000;
 	if (timer_settime(_timerid, CLOCK_REALTIME, &its, NULL) == -1)
-		throw std::runtime_error("Failure arm tier!");
+		throw std::runtime_error("Failure arm timer!");
 }
 
 void	Connection::send_response() {
-	Client*	client;
 	size_t	found;
 
-	client = _data._client;
-	if (!(_state & DECONNECT)) {
-		client->process_response(_state);
-		send(_fd, client->raw_data.c_str(), client->raw_data.size(), 0);
-		found = client->raw_data.find("Connection: close");
-		if (found != std::string::npos)
-			_state = DECONNECT;
-		else
-			_state = RESET;
+	_cli->set_server(_requested_server());
+	_cli->process_response(_socket, _state);
+	send(_socket, _cli->raw_data.c_str(), _cli->raw_data.size(), 0);
+	found = _cli->raw_data.find("Connection: close");
+	if (found != std::string::npos)
+		_state = DECONNECT;
+	else {
+		_state = RESET;
+		_cli->reset();
 	}
 	return ;
 }
 
 void	Connection::retrieve_request() {
-	Request*	request;
-	Client*		client;
-	char	buf[256];
+	char	buf[4096];
 	int		rlen;
 
-	client = _data._client;
-	request = client->get_request();
-	while ((rlen = recv(_fd, buf, 255, 0)) > 0) {
+	while ((rlen = recv(_socket, buf, 4095, 0)) > 0) {
 		buf[rlen] = 0;
-		client->raw_data.append(str_t(buf, rlen));
-		if (_state & RQLINE)
-			_state = request->process_rl(client->raw_data);
-		if (_state & HEADER)
-			_state = request->process_head(client->raw_data);
-		if (_state & BODY)
-			_state = request->process_body(client->raw_data);
+		_cli->raw_data.append(str_t(buf, rlen));
+		_cli->process_request(_state);
 		if (_state & RESPONSE)
 			break ;
 	}
-	if (rlen == 0 && (_state = DECONNECT))
+	if (rlen == 0) {
 		std::cout << "Client deconnected" << std::endl;
+		_state = DECONNECT;
+	}
 	return ;
 }

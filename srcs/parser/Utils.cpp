@@ -1,5 +1,7 @@
 #include "Base.hpp"
 
+static int	code[11] = {200, 301, 400, 403, 404, 405, 413, 414, 500, 501, 505};
+
 std::map<int, str_t>	code_g;
 std::map<int, str_t>	page_g;
 std::map<str_t, str_t>	mime_g;
@@ -30,19 +32,28 @@ str_t&	_tolower(str_t& str) {
 	return str;
 }
 
+int	_translate(int hex) {
+	hex >>= 7;
+	for (int i = 0; i < 11; ++i) {
+		if (hex & 1)
+			return code[i];
+		hex >>= 1;
+	}
+	return 500;
+}
+
 static void		status_msgs() {
-	code_g[200] = "OK"; // ok
-	code_g[301] = "Moved Permanently"; // ok
-	code_g[400] = "Bad Request"; // ok
-	code_g[403] = "Forbidden"; // ok
-	code_g[404] = "Not Found"; // ok
-	code_g[405] = "Method Not Allowed"; // ok
-	code_g[411] = "Length Required"; // ok
-	code_g[413] = "Payload Too Large"; // ok
-	code_g[414] = "URI Too Long"; // ok
-	code_g[500] = "Internal Server Error"; // ok
-	code_g[501] = "Not Implemented"; // ok
-	code_g[505] = "HTTP Version Not Supported"; // ok
+	code_g[200] = "OK";
+	code_g[301] = "Moved Permanently";
+	code_g[400] = "Bad Request";
+	code_g[403] = "Forbidden";
+	code_g[404] = "Not Found";
+	code_g[405] = "Method Not Allowed";
+	code_g[413] = "Payload Too Large";
+	code_g[414] = "URI Too Long";
+	code_g[500] = "Internal Server Error";
+	code_g[501] = "Not Implemented";
+	code_g[505] = "HTTP Version Not Supported";
 }
 
 static void		default_pages() {
@@ -86,15 +97,6 @@ static void		default_pages() {
 	"<head><title>405 Method Not Allowed</title></head>" CRLF
 	"<body>" CRLF
 	"<center><h1>405 Method Not Allowed</h1></center>" CRLF
-	"<hr><center>" SERVER "</center>" CRLF
-	"</body>" CRLF
-	"</html>";
-
-	page_g[411] =
-	"<html>" CRLF
-	"<head><title>411 Length Required</title></head>" CRLF
-	"<body>" CRLF
-	"<center><h1>411 Length Required</h1></center>" CRLF
 	"<hr><center>" SERVER "</center>" CRLF
 	"</body>" CRLF
 	"</html>";
@@ -146,76 +148,77 @@ static void		default_pages() {
 }
 
 static void		mimes_types(){
-	mime_g["aac"]		= "audio/aac";
-	mime_g["mp3"]		= "audio/mp3";
-	mime_g["abw"]		= "application/x-abiword";
-	mime_g["arc"]		= "application/octet-stream";
-	mime_g["avi"]		= "video/x-msvideo";
-	mime_g["azw"]		= "application/vnd.amazon.ebook";
-	mime_g["bin"]		= "application/octet-stream";
-	mime_g["bmp"]		= "image/bmp";
-	mime_g["bz"]	 	= "application/x-bzip";
-	mime_g["bz2"]		= "application/x-bzip2";
-	mime_g["csh"]		= "application/x-csh";
-	mime_g["css"]		= "text/css";
-	mime_g["csv"]		= "text/csv";
-	mime_g["doc"]		= "application/msword";
+	mime_g["aac"]	= "audio/aac";
+	mime_g["mp3"]	= "audio/mp3";
+	mime_g["amr"]	= "audio/amr";
+	mime_g["abw"]	= "application/x-abiword";
+	mime_g["arc"]	= "application/octet-stream";
+	mime_g["avi"]	= "video/x-msvideo";
+	mime_g["azw"]	= "application/vnd.amazon.ebook";
+	mime_g["bin"]	= "application/octet-stream";
+	mime_g["bmp"]	= "image/bmp";
+	mime_g["bz"]	= "application/x-bzip";
+	mime_g["bz2"]	= "application/x-bzip2";
+	mime_g["csh"]	= "application/x-csh";
+	mime_g["css"]	= "text/css";
+	mime_g["csv"]	= "text/csv";
+	mime_g["doc"]	= "application/msword";
 	mime_g["docx"]	= "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-	mime_g["eot"]		= "application/vnd.ms-fontobject";
+	mime_g["eot"]	= "application/vnd.ms-fontobject";
 	mime_g["epub"]	= "application/epub+zip";
-	mime_g["gif"]		= "image/gif";
-	mime_g["htm"]		= "text/html";
+	mime_g["gif"]	= "image/gif";
+	mime_g["htm"]	= "text/html";
 	mime_g["html"]	= "text/html";
-	mime_g["ico"]		= "image/x-icon";
-	mime_g["ics"]		= "text/calendar";
-	mime_g["jar"]		= "application/java-archive";
+	mime_g["ico"]	= "image/x-icon";
+	mime_g["ics"]	= "text/calendar";
+	mime_g["jar"]	= "application/java-archive";
 	mime_g["jpeg"]	= "image/jpeg";
-	mime_g["jpg"]		= "image/jpeg";
-	mime_g["js"]		= "application/javascript";
+	mime_g["jpg"]	= "image/jpeg";
+	mime_g["js"]	= "application/javascript";
 	mime_g["json"]	= "application/json";
-	mime_g["mid"]		= "audio/midi";
+	mime_g["mid"]	= "audio/midi";
 	mime_g["midi"]	= "audio/midi";
-	mime_g["mid"]		= "audio/midi";
+	mime_g["mid"]	= "audio/midi";
 	mime_g["mpeg"]	= "video/mpeg";
 	mime_g["mpkg"]	= "application/vnd.apple.installer+xml";
-	mime_g["odp"]		= "application/vnd.oasis.opendocument.presentation";
-	mime_g["ods"]		= "application/vnd.oasis.opendocument.spreadsheet";
-	mime_g["odt"]		= "application/vnd.oasis.opendocument.text";
-	mime_g["oga"]		= "audio/ogg";
-	mime_g["ogv"]		= "video/ogg";
-	mime_g["mp4"]		= "video/mp4";
-	mime_g["ogx"]		= "application/ogg";
-	mime_g["otf"]		= "font/otf";
-	mime_g["png"]		= "image/png";
-	mime_g["pdf"]		= "application/pdf";
-	mime_g["ppt"]		= "application/vnd.ms-powerpoint";
+	mime_g["odp"]	= "application/vnd.oasis.opendocument.presentation";
+	mime_g["ods"]	= "application/vnd.oasis.opendocument.spreadsheet";
+	mime_g["odt"]	= "application/vnd.oasis.opendocument.text";
+	mime_g["oga"]	= "audio/ogg";
+	mime_g["ogv"]	= "video/ogg";
+	mime_g["mp4"]	= "video/mp4";
+	mime_g["ogx"]	= "application/ogg";
+	mime_g["otf"]	= "font/otf";
+	mime_g["png"]	= "image/png";
+	mime_g["pdf"]	= "application/pdf";
+	mime_g["ppt"]	= "application/vnd.ms-powerpoint";
 	mime_g["pptx"]	= "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-	mime_g["rar"]		= "application/x-rar-compressed";
-	mime_g["rtf"]		= "application/rtf";
-	mime_g["sh"]		= "application/x-sh";
-	mime_g["svg"]		= "image/svg+xml";
-	mime_g["swf"]		= "application/x-shockwave-flash";
-	mime_g["tar"]		= "application/x-tar";
-	mime_g["tif"]		= "image/tiff";
+	mime_g["rar"]	= "application/x-rar-compressed";
+	mime_g["rtf"]	= "application/rtf";
+	mime_g["sh"]	= "application/x-sh";
+	mime_g["svg"]	= "image/svg+xml";
+	mime_g["swf"]	= "application/x-shockwave-flash";
+	mime_g["tar"]	= "application/x-tar";
+	mime_g["tif"]	= "image/tiff";
 	mime_g["tiff"]	= "image/tiff";
-	mime_g["ts"]		= "application/typescript";
-	mime_g["ttf"]		= "font/ttf";
-	mime_g["vsd"]		= "application/vnd.visio";
-	mime_g["wav"]		= "audio/x-wav";
+	mime_g["ts"]	= "application/typescript";
+	mime_g["ttf"]	= "font/ttf";
+	mime_g["vsd"]	= "application/vnd.visio";
+	mime_g["wav"]	= "audio/x-wav";
 	mime_g["weba"]	= "audio/webm";
 	mime_g["webm"]	= "video/webm";
 	mime_g["webp"]	= "image/webp";
 	mime_g["woff"]	= "font/woff";
 	mime_g["woff2"]	= "font/woff2";
 	mime_g["xhtml"]	= "application/xhtml+xml";
-	mime_g["xls"]		= "application/vnd.ms-excel";
+	mime_g["xls"]	= "application/vnd.ms-excel";
 	mime_g["xlsx"]	= "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-	mime_g["xml"]		= "application/xml";
-	mime_g["xul"]		= "application/vnd.mozilla.xul+xml";
-	mime_g["zip"]		= "application/zip";
-	mime_g["3gp"]		= "video/3gpp";
-	mime_g["3g2"]		= "video/3gpp2";
-	mime_g["7z"]		= "application/x-7z-compressed";
+	mime_g["xml"]	= "application/xml";
+	mime_g["xul"]	= "application/vnd.mozilla.xul+xml";
+	mime_g["zip"]	= "application/zip";
+	mime_g["3gp"]	= "video/3gpp";
+	mime_g["3g2"]	= "video/3gpp2";
+	mime_g["7z"]	= "application/x-7z-compressed";
 }
 
 void	_init() {

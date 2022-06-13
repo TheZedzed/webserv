@@ -42,7 +42,7 @@ void	Location::set_method(const strs_t& line) {
 	strs_t::const_iterator	it;
 
 	it = line.begin() + 1;
-	for (; it != line.end(); ++it) {
+	for (; it != line.end() - 1; ++it) {
 		_allow.push_back(*it);
 	}
 }

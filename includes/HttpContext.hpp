@@ -23,6 +23,7 @@ class	HttpContext {
 		~HttpContext();
 
 		void	worker(); // events loop
+		bool	deconnection(); // deconnection
 		bool	new_connection(); // manage new connection
 		bool	handle_request(); // manage received data
 		bool	handle_response(); // send data
@@ -34,7 +35,6 @@ class	HttpContext {
 		HttpContext&	operator=(const HttpContext&);
 
 		void	_add_client(int socket);
-		bool	_skip_event();
 		void	_mod_client();
 
 		const Parser*	_parser;
