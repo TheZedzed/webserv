@@ -44,4 +44,11 @@ class	Response {
 		const Request*	_request; // request
 		const Location*	_location; // location rules
 };
+
+const inline str_t&	Response::get_path() const
+{ return _path; }
+
+const inline Location*	Response::get_location() const
+{ return _location; }
+
 #endif

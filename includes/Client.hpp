@@ -43,4 +43,17 @@ class	Client {
 		const Server*	_server;
 		const Request*	_request;
 };
+
+const inline Request*	Client::get_request() const
+{ return _request; }
+
+const inline Server*	Client::get_server() const
+{ return _server; }
+
+inline void	Client::set_request(const Request* request)
+{ _request = request; }
+
+inline void	Client::set_server(const Server* server)
+{ _server = server; }
+
 #endif

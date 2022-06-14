@@ -59,18 +59,6 @@ void	Client::reset() {
 	_server = NULL;
 }
 
-const Request*	Client::get_request() const
-{ return _request; }
-
-const Server*	Client::get_server() const
-{ return _server; }
-
-void	Client::set_request(const Request* request)
-{ _request = request; }
-
-void	Client::set_server(const Server* server)
-{ _server = server; }
-
 void	Client::_process_method(Response* res, int socket, int& state) {
 	const Location*	loc = res->get_location();
 	str_t	method = _request->get_rl()[0];

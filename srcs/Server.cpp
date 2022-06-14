@@ -13,25 +13,10 @@ Server::~Server() {
 	}
 }
 
-const Server::route_t&	Server::get_routes() const
-{ return _routes; }
-
-const Server::pages_t&	Server::get_err_pages() const
-{ return _error_pages; }
-
-const sockets_t&	Server::get_sockets() const
-{ return _sockets; }
-
-const strs_t&	Server::get_names() const
-{ return _names; }
-
-size_t		Server::get_max() const
-{ return _max; }
-
 void	Server::set_socket(const socket_t& socket)
 { _sockets.push_back(socket); }
 
-void	Server::set_max(const str_t& line)
+void		Server::set_max(const str_t& line)
 { _max = _atoi(line, 10); }
 
 void	Server::set_err_page(const strs_t& line) {

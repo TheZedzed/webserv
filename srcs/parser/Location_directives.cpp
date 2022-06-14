@@ -1,26 +1,5 @@
 #include "Parser.hpp"
 
-bool	Parser::location_directive(stream_t& in, int flag) {
-	str_t	buffer;
-	str_t	key;
-
-	if (_line.size() != 3 || *_line.rbegin() != "{")
-		return FAILURE;
-	if (flag) {
-		key = _line[1];
-		_curr_loc = new Location();
-	}
-	while (_getline(in, buffer) && !_end_of_block()) {
-		if (_line.size() == 0)
-			continue ;
-		else if (wrong_ldirective(flag))
-			return FAILURE;
-	}
-	if (flag)
-		_curr_serv->set_route(key, &_curr_loc);
-	return SUCCESS;
-}
-
 bool	Parser::wrong_ldirective(int flag) {
 	if (_line[0] == "allow")
 		return allow_directive(flag);

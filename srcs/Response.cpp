@@ -33,12 +33,6 @@ Response::Response(const Server* serv, const Request* req) : _server(serv), _req
 Response::~Response()
 { std::cout << "Destroy Response" << std::endl; }
 
-const str_t&	Response::get_path() const
-{ return _path; }
-
-const Location*	Response::get_location() const
-{ return _location; }
-
 str_t	Response::extract_content(int& state) {
 	std::ifstream	infile;
 	char*	buff;

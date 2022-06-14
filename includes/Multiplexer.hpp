@@ -20,9 +20,9 @@ class	Multiplexer {
 		~Multiplexer();
 		Multiplexer();
 
+		int	get_instance() const;
 		events_t&	get_events();
 		timers_t&	get_timers();
-		const int&	get_instance() const;
 
 		void	build_events(const listenners_t& map);
 		void	remove_deconnection();
@@ -40,6 +40,15 @@ class	Multiplexer {
 		events_t	_events;
 		timers_t	_timers;
 };
+
+inline int	Multiplexer::get_instance() const
+{ return _instance; }
+
+inline Multiplexer::events_t&	Multiplexer::get_events()
+{ return _events; }
+
+inline Multiplexer::timers_t&	Multiplexer::get_timers()
+{ return _timers; }
 
 #endif
 

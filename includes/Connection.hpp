@@ -37,4 +37,16 @@ class	Connection {
 		const servers_t&	_servers; // servers listennig on _socket
 };
 
+inline int	Connection::get_socket() const
+{ return _socket; }
+
+inline bool	Connection::get_type() const
+{ return _type; }
+
+const inline Client*	Connection::get_client() const
+{ return _cli; }
+
+const inline Connection::servers_t&	Connection::get_servers() const
+{ return _servers; }
+
 #endif

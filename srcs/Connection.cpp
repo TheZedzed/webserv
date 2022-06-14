@@ -47,18 +47,6 @@ const Server*	Connection::_requested_server() const {
 	return _servers[0];
 }
 
-int	Connection::get_socket() const
-{ return _socket; }
-
-bool	Connection::get_type() const
-{ return _type; }
-
-const Client*	Connection::get_client() const
-{ return _cli; }
-
-const Connection::servers_t&	Connection::get_servers() const
-{ return _servers; }
-
 void	Connection::arm_timer() {
 	struct itimerspec	its;
 

@@ -40,5 +40,20 @@ class	Server {
 		size_t		_max; // default: 1024;
 };
 
+const inline Server::route_t&	Server::get_routes() const
+{ return _routes; }
+
+const inline Server::pages_t&	Server::get_err_pages() const
+{ return _error_pages; }
+
+const inline sockets_t&	Server::get_sockets() const
+{ return _sockets; }
+
+const inline strs_t&	Server::get_names() const
+{ return _names; }
+
+inline size_t	Server::get_max() const
+{ return _max; }
+
 std::ostream&	operator<<(std::ostream& out, const Server& Server);
 #endif

@@ -1,5 +1,25 @@
 #include "Parser.hpp"
 
+static bool	_end_of_block(const strs_t& line)
+{ return (line.size() == 1 && line[0] == "}"); }
+
+static bool	_server_block(const strs_t& line)
+{ return (line.size() == 2 && line[0] == "server" &&  line[1] == "{"); }
+
+static bool	_getline(Parser::stream_t& in, str_t& buffer, strs_t& line) {
+	std::stringstream	tmp;
+	str_t	elem;
+
+	line.clear();
+	if (std::getline(in, buffer)) {
+		tmp.str(buffer);
+		while (tmp >> elem)
+			line.push_back(elem);
+		return true;
+	}
+	return false;
+}
+
 Parser::Parser(const char* file) {
 	std::ifstream	infile;
 
@@ -12,7 +32,7 @@ Parser::Parser(const char* file) {
 	infile.close();
 	infile.open(file);
 	loop(infile, 1);
-
+#if DEBUG
 	listenners_t::const_iterator	it;
 	servers_t::const_iterator	it1;
 	int	i;
@@ -26,6 +46,7 @@ Parser::Parser(const char* file) {
 			std::cout << **it1;
 		}
 	}
+#endif
 }
 
 Parser::~Parser() {
@@ -39,9 +60,6 @@ Parser::~Parser() {
 		}
 	}
 }
-
-const Parser::listenners_t&	Parser::get_map() const
-{ return _dumb_map; }
 
 void	Parser::_new_node(const socket_t socket, Server* server) {
 	servers_t	servers;
@@ -105,34 +123,49 @@ void	Parser::_fill_map(int flag) {
 	_dumb_tmp.clear();
 }
 
-bool	Parser::_end_of_block()
-{ return (_line.size() == 1 && _line[0] == "}"); }
+bool	Parser::location_directive(stream_t& in, int flag) {
+	str_t	buffer;
+	str_t	key;
 
-bool	Parser::_server_block()
-{ return (_line.size() == 2 && _line[0] == "server" &&  _line[1] == "{"); }
-
-bool	Parser::_getline(stream_t& in, str_t& buffer) {
-	std::stringstream	tmp;
-	str_t	elem;
-
-	_line.clear();
-	if (std::getline(in, buffer)) {
-		tmp.str(buffer);
-		while (tmp >> elem)
-			_line.push_back(elem);
-		return true;
+	if (_line.size() != 3 || *_line.rbegin() != "{")
+		return FAILURE;
+	if (flag) {
+		key = _line[1];
+		_curr_loc = new Location();
 	}
-	return false;
+	while (_getline(in, buffer, _line) && !_end_of_block(_line)) {
+		if (_line.size() == 0)
+			continue ;
+		else if (wrong_ldirective(flag))
+			return FAILURE;
+	}
+	if (flag)
+		_curr_serv->set_route(key, &_curr_loc);
+	return SUCCESS;
+}
+
+bool	Parser::server_directive(stream_t& in, int flag) {
+	if (_line[0] == "listen")
+		return listen_directive(flag);
+	else if (_line[0] == "error_page")
+		return err_page_directive(flag);
+	else if (_line[0] == "max_client_body_size")
+		return client_size_directive(flag);
+	else if (_line[0] == "server_name")
+		return names_directive(flag);
+	else if (_line[0] == "location")
+		return location_directive(in, flag);
+	return FAILURE;
 }
 
 bool	Parser::loop(stream_t& in, bool flag) {
 	str_t	buffer;
 
-	while (_getline(in, buffer)) {
-		if (_server_block()) {
+	while (_getline(in, buffer, _line)) {
+		if (_server_block(_line)) {
 			if (flag)
 				_curr_serv = new Server();
-			while (_getline(in, buffer) && !_end_of_block()) {
+			while (_getline(in, buffer, _line) && !_end_of_block(_line)) {
 				if (_line.size() == 0)
 					continue ;
 				if (server_directive(in, flag) == FAILURE)
@@ -143,7 +176,7 @@ bool	Parser::loop(stream_t& in, bool flag) {
 			_fill_map(flag);
 			continue ;
 		}
-		else if (_line.size() == 0 || _end_of_block())
+		else if (_line.size() == 0 || _end_of_block(_line))
 			continue ;
 		return FAILURE;
 	}

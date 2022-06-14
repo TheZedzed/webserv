@@ -41,15 +41,6 @@ Request::Request()
 Request::~Request()
 { std::cout << "Destroy Request" << std::endl; }
 
-const str_t&	Request::get_body() const
-{ return _body; }
-
-const strs_t&	Request::get_rl() const
-{ return _start; }
-
-const fields_t&	Request::get_headers() const
-{ return _headers; }
-
 int	Request::_rline_checker() {
 	if (_bad_rline(_start))
 		return RESPONSE | ERROR | ERR_400;

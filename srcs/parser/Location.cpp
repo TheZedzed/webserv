@@ -10,27 +10,6 @@ Location::Location() : _cgi() {
 Location::~Location()
 { std::cout << "Destroy current location directive" << std::endl; }
 
-const str_t&	Location::get_root() const
-{ return _root; }
-
-const Location::redir_t&	Location::get_redir() const
-{ return _redir; }
-
-bool		Location::get_autoindex() const
-{ return _auto; }
-
-const strs_t&	Location::get_allowed() const
-{ return _allow; }
-
-const str_t&	Location::get_cgi() const
-{ return _cgi; }
-
-void	Location::set_root(const str_t& root)
-{ _root = root; }
-
-void	Location::set_autoindex(const str_t& autoindex)
-{ _auto = (autoindex == "on" ? 1 : 0); }
-
 void	Location::set_redirection(const strs_t& line) {
 	redir_t	item;
 
@@ -46,9 +25,6 @@ void	Location::set_method(const strs_t& line) {
 		_allow.push_back(*it);
 	}
 }
-
-void	Location::set_cgi(const str_t& cgi)
-{ _cgi = cgi; }
 
 std::ostream&	operator<<(std::ostream& out, const Location& loc) {
 	strs_t::const_iterator	it;

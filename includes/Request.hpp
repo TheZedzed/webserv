@@ -38,4 +38,13 @@ class	Request {
 		fields_t	_headers;
 };
 
+const inline str_t&		Request::get_body() const
+{ return _body; }
+
+const inline strs_t&	Request::get_rl() const
+{ return _start; }
+
+const inline fields_t&	Request::get_headers() const
+{ return _headers; }
+
 #endif

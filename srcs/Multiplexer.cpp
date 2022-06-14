@@ -29,15 +29,6 @@ Multiplexer::~Multiplexer() {
 	}
 }
 
-const int&	Multiplexer::get_instance() const
-{ return _instance; }
-
-Multiplexer::events_t&	Multiplexer::get_events()
-{ return _events; }
-
-Multiplexer::timers_t&	Multiplexer::get_timers()
-{ return _timers; }
-
 void	Multiplexer::build_events(const Parser::listenners_t& map) {
 	Parser::listenners_t::const_iterator	it;
 	Connection*	connex;

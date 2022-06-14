@@ -28,6 +28,8 @@
 # include <iostream>
 # include <algorithm>
 
+# define DEBUG 1
+
 # define SUCCESS 0
 # define FAILURE 1
 

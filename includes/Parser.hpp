@@ -41,13 +41,9 @@ class	Parser {
 		Parser(const Parser&);
 		Parser&	operator=(const Parser&);
 
-		void	_new_node(const socket_t socket, Server* server);
 		void	_insert_any(const socket_t socket, Server* server);
-		bool	_getline(stream_t& in, str_t& buffer);
+		void	_new_node(const socket_t socket, Server* server);
 		void	_fill_map(int flag);
-		bool	_server_block();
-		bool	_end_of_block();
-		socket_t	_lil_dns();
 
 		Server*			_curr_serv;
 		Location*		_curr_loc;
@@ -55,5 +51,8 @@ class	Parser {
 		sockets_t		_dumb_tmp; // for checking duplicate sockets
 		strs_t			_line;
 };
+
+const inline Parser::listenners_t&	Parser::get_map() const
+{ return _dumb_map; }
 
 #endif

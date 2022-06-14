@@ -40,5 +40,29 @@ class	Location {
 		str_t	_cgi; // cgi
 };
 
+const inline str_t&	Location::get_root() const
+{ return _root; }
+
+const inline Location::redir_t&	Location::get_redir() const
+{ return _redir; }
+
+inline bool	Location::get_autoindex() const
+{ return _auto; }
+
+const inline strs_t&	Location::get_allowed() const
+{ return _allow; }
+
+const inline str_t&	Location::get_cgi() const
+{ return _cgi; }
+
+inline void	Location::set_root(const str_t& root)
+{ _root = root; }
+
+inline void	Location::set_autoindex(const str_t& autoindex)
+{ _auto = (autoindex == "on" ? 1 : 0); }
+
+inline void	Location::set_cgi(const str_t& cgi)
+{ _cgi = cgi; }
+
 std::ostream&	operator<<(std::ostream& out, const Location& loc);
 #endif
