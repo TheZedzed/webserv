@@ -57,9 +57,9 @@ void	Cgi::build_env(const str_t& route, int socket) {
 	}
 	else
 		_server_port += "80";
+	uri = _request.get_rl()[1].substr(_request.get_rl()[1].find_last_of('/') + 1, found);
 	if ((found = _request.get_rl()[1].find('?') != std::string::npos))
 		query += uri.substr(found);
-	uri = _request.get_rl()[1].substr(_request.get_rl()[1].find_last_of('/') + 1, found);
 	_query_string += query;
 	_path_info += uri;
 	_document_uri += uri;
