@@ -163,6 +163,10 @@ void	Response::process_cgi(int socket, int& state, str_t& raw_data) {
 
 str_t	Response::process_delete(int& state) {
 	// to do: delete in DELETE folder only else error 501
+	if (_path.find("delete/") == std::string::npos) {
+		state |= (ERROR | ERR_403);
+		return error_response(state);
+	}
 	if (*_path.rbegin() == '/') {
 		if (nftw(_path.c_str(), _delete_file, 20, FTW_DEPTH | FTW_PHYS) < 0) {
 			state |= (ERROR | ERR_500);

@@ -51,7 +51,7 @@ void	Connection::arm_timer() {
 	struct itimerspec	its;
 
 	bzero(&its, sizeof(itimerspec));
-	its.it_value.tv_sec = 1000;
+	its.it_value.tv_sec = 65;
 	its.it_value.tv_nsec = 1000 / 100000000;
 	if (timer_settime(_timerid, CLOCK_REALTIME, &its, NULL) == -1)
 		throw std::runtime_error("Failure arm timer!");
