@@ -17,7 +17,7 @@ class	Connection {
 		const Client*	get_client() const;
 		const servers_t&	get_servers() const;
 
-		void	arm_();
+		void	arm_timer();
 		void	send_response();
 		void	retrieve_request();
 

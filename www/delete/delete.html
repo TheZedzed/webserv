@@ -4,9 +4,9 @@
 			function sendDelete(event)
 			{
 				var xhttp = new XMLHttpRequest();
-				var toDelete = prompt("Please enter file/dir name to delete");
+				var txt = prompt();
 				event.preventDefault();
-				xhttp.open("DELETE", toDelete, true);
+				xhttp.open("DELETE", txt, true);
 				xhttp.send();
 				console.log(xhttp.responseText);
 			}

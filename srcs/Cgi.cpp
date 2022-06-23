@@ -153,7 +153,7 @@ void	Cgi::_add_headers(str_t &buffer, str_t& status, size_t length) {
 	time.push_back('\n');
 	buffer.insert(0, "HTTP/1.1 " + status);
 	if (buffer.find("Content-type: ") == std::string::npos)
-		buffer += "Content-type: text/html" CRLF;
+		buffer += "Content-type: text/html" SERVER CRLF;
 	if (buffer.find("Server: ") == std::string::npos)
 		buffer += "Server: " SERVER CRLF;
 	if (buffer.find("Date: ") == std::string::npos)
@@ -165,7 +165,7 @@ void	Cgi::_add_headers(str_t &buffer, str_t& status, size_t length) {
 	buffer += CRLF;
 }
 
-bool	Cgi::_output(str_t &buffer) {
+bool	Cgi::treat_cgi_output(str_t &buffer) {
 	char	*buffer_body;
 	size_t	length;
 	str_t	status;

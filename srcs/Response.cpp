@@ -156,14 +156,14 @@ void	Response::process_cgi(int socket, int& state, str_t& raw_data) {
 		state |= (ERROR | ERR_500);
 		raw_data = error_response(state);
 	}
-	else 
+	else
 		state = (RESPONSE | ERR_200);
 	return ;
 }
 
 str_t	Response::process_delete(int& state) {
 	// to do: delete in DELETE folder only else error 501
-	if (_path.find("delete/") == std::string::npos) {
+	if (_path.find("/delete/") == std::string::npos) {
 		state |= (ERROR | ERR_403);
 		return error_response(state);
 	}
