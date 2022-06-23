@@ -156,7 +156,8 @@ void	Response::process_cgi(int socket, int& state, str_t& raw_data) {
 		state |= (ERROR | ERR_500);
 		raw_data = error_response(state);
 	}
-	state = (RESPONSE | ERR_200);
+	else 
+		state = (RESPONSE | ERR_200);
 	return ;
 }
 

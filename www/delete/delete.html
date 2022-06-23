@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+	<head>
+		<script>
+			function sendDelete(event)
+			{
+				var xhttp = new XMLHttpRequest();
+				var toDelete = prompt("Please enter file/dir name to delete");
+				event.preventDefault();
+				xhttp.open("DELETE", toDelete, true);
+				xhttp.send();
+				console.log(xhttp.responseText);
+			}
+		</script>
+	</head>
+<body>
+	<a href="#" onclick="sendDelete(event)">DELETE</a>
+</body>

@@ -49,8 +49,10 @@
 	<?php if (isset($_POST['field_one']) && isset($_POST['field_two'])) {
 			echo("<h1> field one = " . htmlspecialchars($_POST['field_one']) . "</h1>");
 			echo("<h1> field two = " . htmlspecialchars($_POST['field_two']) . "</h1>");
-			setcookie("C00K13", htmlspecialchars($_POST['field_three']), time() + 30);
 		}
+		if (isset($_POST['field_three']) && $_POST['field_three'] != "")
+			setcookie("C00K13", htmlspecialchars($_POST['field_three']), time() + 30);
+
 	?>
 	<div id="cookie">
 	</div>

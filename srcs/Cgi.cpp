@@ -163,7 +163,7 @@ void	Cgi::_add_headers(str_t &buffer, str_t& status, size_t length) {
 	buffer += CRLF;
 }
 
-bool	Cgi::treat_cgi_output(str_t &buffer) {
+bool	Cgi::_output(str_t &buffer) {
 	char	*buffer_body;
 	size_t	length;
 	str_t	status;
