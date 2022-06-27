@@ -104,20 +104,14 @@ void	Client::set_headers(const str_t& path, int code) {
 }
 
 void	Client::process_request(int& state) {
-	static Request*	request = NULL;
-
-	if (request == NULL)
-		request = new Request();
+	if (_request == NULL)
+		_request = new Request();
 	if (state & RQLINE)
-		state = request->process_rl(raw_data);
+		state = _request->process_rl(raw_data);
 	if (state & HEADER)
-		state = request->process_head(raw_data);
+		state = _request->process_head(raw_data);
 	if (state & BODY)
-		state = request->process_body(raw_data);
-	if (state & RESPONSE) {
-		set_request(request);
-		request = NULL;
-	}
+		state = _request->process_body(raw_data);
 }
 
 void	Client::process_response(int socket, int& state) {

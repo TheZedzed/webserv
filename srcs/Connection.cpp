@@ -60,12 +60,13 @@ void	Connection::arm_timer() {
 void	Connection::send_response() {
 	size_t	found1;
 	size_t	found2;
+	ssize_t	res;
 
 	_cli->set_server(_requested_server());
 	_cli->process_response(_socket, _state);
-	send(_socket, _cli->raw_data.c_str(), _cli->raw_data.size(), 0);
+	res = send(_socket, _cli->raw_data.c_str(), _cli->raw_data.size(), 0);
 	found1 = _cli->raw_data.find("Connection:");
-	if (found1 != std::string::npos) {
+	if (res != -1 && found1 != std::string::npos) {
 		found2 = _cli->raw_data.find("Connection: Keep-alive", found1);
 		if (found2 != std::string::npos) {
 			_state = RESET;
@@ -81,16 +82,19 @@ void	Connection::retrieve_request() {
 	char	buf[4096];
 	int		rlen;
 
-	while ((rlen = recv(_socket, buf, 4095, 0)) > 0) {
+	std::cout << "address of state " << &_state << "\n";
+	rlen = recv(_socket, buf, 4095, 0);
+	if (rlen <= 0) {
+		if (rlen == 0)
+			std::cout << "Client deconnected" << std::endl;
+		else
+			std::cout << "Error rlen" << std::endl;
+		_state = DECONNECT;
+	}
+	else {
 		buf[rlen] = 0;
 		_cli->raw_data.append(str_t(buf, rlen));
 		_cli->process_request(_state);
-		if (_state & RESPONSE)
-			break ;
-	}
-	if (rlen == 0) {
-		std::cout << "Client deconnected" << std::endl;
-		_state = DECONNECT;
 	}
 	return ;
 }

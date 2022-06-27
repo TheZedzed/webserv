@@ -4,6 +4,7 @@ Location::Location() : _cgi() {
 	_auto = false;
 	_root = "/html";
 	_allow.push_back("GET");
+	_index = "index.html";
 	_redir = std::make_pair(-1, "");
 }
 

@@ -27,6 +27,7 @@ class	Parser {
 		bool	location_directive(stream_t& in, int flag);
 		bool	wrong_ldirective(int flag);
 		bool	allow_directive(int flag);
+		bool	index_directive(int flag);
 		bool	cgi_directive(int flag);
 		bool	root_directive(int flag);
 		bool	return_directive(int flag);

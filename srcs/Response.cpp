@@ -129,14 +129,25 @@ bool	Response::construct_path(int& state) {
 str_t	Response::process_get(int& state) {
 	bool	autoindex = _location->get_autoindex();
 	bool	directory = *_path.rbegin() == '/';
+	const str_t	index = _location->get_index();;
 	str_t	res;
 
-	if (directory && autoindex == false) {
-		state |= (ERROR | ERR_403);
-		return error_response(state);
+	if (directory) {
+		_path += index;
+		res = extract_content(state);
+		if (state & ERROR) {
+			if (autoindex) {
+				res.clear();
+				state = (RESPONSE);
+				_path = _path.substr(0, _path.size() - index.size());
+				res = extract_directory(state);
+			}
+			else {
+				state |= (ERROR | ERR_403);
+				return error_response(state);
+			}
+		}
 	}
-	else if (directory)
-		res = extract_directory(state);
 	else
 		res = extract_content(state);
 	if (state & ERROR)

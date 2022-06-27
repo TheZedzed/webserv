@@ -28,7 +28,7 @@ void	HttpContext::timeout(void* ptr) {
 	return ;
 }
 
-bool	HttpContext::deconnection() {
+bool	HttpContext::mod_connection() {
 	int	state;
 
 	state = peer->_state;
@@ -45,7 +45,7 @@ void	HttpContext::_mod_client() {
 
 	if (peer->_state & RESET) {
 		peer->_state = RQLINE;
-		flag = EPOLLIN | EPOLLET;
+		flag = EPOLLIN;
 	}
 	else
 		flag = EPOLLOUT;
@@ -57,10 +57,11 @@ void	HttpContext::_mod_client() {
 void	HttpContext::_add_client(int fd) {
 	Connection*	connex;
 
+	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 	connex = new Connection(fd, CLIENT, peer->get_servers());
 	_multiplexer.get_timers().insert(std::make_pair(connex->_timerid, connex));
 	_multiplexer.get_events().insert(std::make_pair(fd, connex));
-	_multiplexer.add_event(connex, EPOLLIN | EPOLLET);
+	_multiplexer.add_event(connex, EPOLLIN);
 	return ;
 }
 
@@ -74,14 +75,10 @@ bool	HttpContext::new_connection() {
 	bzero(&addr, size);
 	listen_fd = peer->get_socket();
 	if (peer->get_type() == SERVERS) {
-		while (1) {
-			fd = accept(listen_fd, reinterpret_cast<sockaddr *>(&addr), &size);
-			if (fd <= 0)
-				break ;
-			_add_client(fd);
-		}
+		fd = accept(listen_fd, reinterpret_cast<sockaddr *>(&addr), &size);
 		if (fd == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
 			throw std::runtime_error("Failure accept");
+		_add_client(fd);
 		return true;
 	}
 	return false;
@@ -102,16 +99,13 @@ void	HttpContext::worker(void) {
 			continue ;
 		for (int i = 0; i < nfds; ++i) {
 			peer = reinterpret_cast<Connection*>(events[i].data.ptr);
-			if (new_connection() == true || deconnection() == true)
+			if (new_connection() == true)
 				continue ;
 			if (events[i].events & EPOLLIN)
 				peer->retrieve_request();
-			if (deconnection() == true)
-				continue ;
-			if (events[i].events & EPOLLOUT)
+			else if (events[i].events & EPOLLOUT)
 				peer->send_response();
-			if (deconnection() == true)
-				continue ;
+			mod_connection();
 		}
 		_multiplexer.remove_deconnection();
 	}

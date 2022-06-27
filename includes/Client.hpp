@@ -25,7 +25,6 @@ class	Client {
 		const Request*	get_request() const;
 
 		void	set_server(const Server* server);
-		void	set_request(const Request* request);
 
 		void	reset();
 		void	process_request(int& state);
@@ -41,7 +40,7 @@ class	Client {
 		void	_process_method(Response* res, int socket, int& state);
 
 		const Server*	_server;
-		const Request*	_request;
+		Request*	_request;
 };
 
 const inline Request*	Client::get_request() const
@@ -49,9 +48,6 @@ const inline Request*	Client::get_request() const
 
 const inline Server*	Client::get_server() const
 { return _server; }
-
-inline void	Client::set_request(const Request* request)
-{ _request = request; }
 
 inline void	Client::set_server(const Server* server)
 { _server = server; }

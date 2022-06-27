@@ -11,7 +11,19 @@ bool	Parser::wrong_ldirective(int flag) {
 		return autoindex_directive(flag);
 	else if (_line[0] == "root")
 		return root_directive(flag);
+	else if (_line[0] == "index")
+		return index_directive(flag);
 	return FAILURE;
+}
+
+bool	Parser::index_directive(int flag) {
+	if (!flag) {
+		if (_line.size() != 3 || *_line.rbegin() != ";")
+			return FAILURE;
+	}
+	else
+		_curr_loc->set_index(_line);
+	return SUCCESS;
 }
 
 bool	Parser::allow_directive(int flag) {
