@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html>
-<body>
-
-<form action="upload.php" method="post" enctype="multipart/form-data">
-  Select image to upload:
-  <input type="file" name="fileToUpload" id="fileToUpload">
-  <input type="submit" value="Upload Image" name="submit">
-</form>
-
-</body>
+<head>
+  <meta charset="utf-8">
+  <title>POST & PHP-CGI</title>
+  <style>
+    input {
+      margin: 10px;
+    }
+    button {
+      padding: 5px;
+      margin: 10px;
+    }
+    #form{
+      text-align: center;
+      width: 50%;
+      margin: auto;
+      background-color: lightgrey;
+      border-radius: 6px;
+      box-shadow: 3px 3px white;
+    }
+  </style>
+</head>
+  <body style="background-color: #1F212E; font-family: Gill Sans, sans-serif;">
+    <div style="margin: 10px;">
+      <h1 style="margin: 5px 0px -18px 0px; color: #00babc">Upload Image</h1>
+    </div>
+    <form style="color: white;" action="upload_image.php" method="post" enctype="multipart/form-data">
+      Select file (only image) to upload:
+      <input type="file" name="fileToUpload" id="fileToUpload">
+      <input type="submit" value="Upload Image" name="submit">
+    </form>
+    <div style="margin: 10px;">
+      <h1 style="margin: 5px 0px -18px 0px; color: #00babc">Upload Image</h1>
+    </div>
+    <form style="color: white;" action="upload.php" method="post" enctype="multipart/form-data">
+      Select file to upload:
+      <input type="file" name="fileToUpload" id="fileToUpload">
+      <input type="submit" value="Upload Image" name="submit">
+    </form>
+   </body>
 </html>

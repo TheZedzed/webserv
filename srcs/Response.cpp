@@ -123,6 +123,8 @@ bool	Response::construct_path(int& state) {
 		}
 		pos ? pos -= 1 : 0;
 	} while (pos);
+	if (_location->get_redir().first != -1)
+		return SUCCESS;
 	return _test_path(_path, state);
 }
 

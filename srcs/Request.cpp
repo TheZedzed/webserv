@@ -149,8 +149,9 @@ int	Request::process_chunk(str_t& raw_data) {
 				read_size = false;
 			}
 			else {
-				_body.append(raw_data.substr(0, limit + 1));
+				_body.append(raw_data.substr(0, chunk_size));
 				raw_data.erase(0, limit + 1);
+				read_size = true;
 			}
 		}
 	} while (!raw_data.empty() && limit != std::string::npos);

@@ -27,6 +27,7 @@
 		}
 		#cookie {
 			font-size: 42px;
+			color: #00babc;
 
 		}
 	</style>
@@ -49,14 +50,12 @@
 	<?php if (isset($_POST['field_one']) && isset($_POST['field_two'])) {
 			echo("<h1> field one = " . htmlspecialchars($_POST['field_one']) . "</h1>");
 			echo("<h1> field two = " . htmlspecialchars($_POST['field_two']) . "</h1>");
-			setcookie("C00K13", htmlspecialchars($_POST['field_three']), time() + 30);
 		}
 		if (isset($_POST['field_three']) && $_POST['field_three'] != "") {
-			setcookie("C00K13", htmlspecialchars($_POST['field_three']), time() + 30);
+			setcookie("C00KIE", htmlspecialchars($_POST['field_three']), time() + 30);
 		}
 	?>
-	<div id="cookie">
-	</div>
+	<h1 id="cookie"></h1>
 	<p style="margin-top:15px; font-style:italic; text-align: center; color: darkgray;">
 		Webserv 42 - 2022
 	</p>

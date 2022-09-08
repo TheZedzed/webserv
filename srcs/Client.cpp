@@ -63,6 +63,7 @@ void	Client::_process_method(Response* res, int socket, int& state) {
 	const Location*	loc = res->get_location();
 	str_t	method = _request->get_rl()[0];
 
+	std::cout <<  "REQUEST LINE:" << _request->get_rl()[0] << ' ' << _request->get_rl()[1] << ' ' <<_request->get_rl()[2] << "\n" << "BODY: " << _request->get_body() << '\n';
 	if (_method_allowed(loc, method) == false) {
 		state |= (ERROR | ERR_405);
 		raw_data += res->error_response(state);

@@ -6,9 +6,12 @@
 				var xhttp = new XMLHttpRequest();
 				var txt = prompt();
 				event.preventDefault();
-				xhttp.open("DELETE", txt, true);
-				xhttp.send();
-				console.log(xhttp.responseText);
+				console.log(txt);
+				if (txt && txt != 'delete.html') {
+					xhttp.open("DELETE", txt, true);
+					xhttp.send();
+					console.log(xhttp.responseText);
+				}
 			}
 		</script>
 	</head>

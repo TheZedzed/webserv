@@ -2,7 +2,7 @@
 
 Location::Location() : _cgi() {
 	_auto = false;
-	_root = "/html";
+	_root = "/wwww/";
 	_allow.push_back("GET");
 	_index = "index.html";
 	_redir = std::make_pair(-1, "");
@@ -41,7 +41,7 @@ std::ostream&	operator<<(std::ostream& out, const Location& loc) {
 	out << "\n[autoindex]: ";
 	out << loc.get_autoindex();
 	out << "\n[redirection]:";
-	out << loc.get_redir().first + " " + loc.get_redir().second;
+	out << loc.get_redir().first << " " << loc.get_redir().second;
 	out << "\n[cgi]: ";
 	out << loc.get_cgi();
 	out << "\n";

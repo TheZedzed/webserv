@@ -51,7 +51,7 @@ void	Connection::arm_timer() {
 	struct itimerspec	its;
 
 	bzero(&its, sizeof(itimerspec));
-	its.it_value.tv_sec = 65;
+	its.it_value.tv_sec = 6500;
 	its.it_value.tv_nsec = 1000 / 100000000;
 	if (timer_settime(_timerid, CLOCK_REALTIME, &its, NULL) == -1)
 		throw std::runtime_error("Failure arm timer!");
@@ -82,7 +82,6 @@ void	Connection::retrieve_request() {
 	char	buf[4096];
 	int		rlen;
 
-	std::cout << "address of state " << &_state << "\n";
 	rlen = recv(_socket, buf, 4095, 0);
 	if (rlen <= 0) {
 		if (rlen == 0)
