@@ -68,8 +68,6 @@ void	Client::_process_method(Response* res, int socket, int& state) {
 		state |= (ERROR | ERR_405);
 		raw_data += res->error_response(state);
 	}
-	else if (loc->get_redir().first > 0)
-		raw_data += res->process_redir(state);
 	else if (_treat_cgi(res, state))
 		res->process_cgi(socket, state, raw_data);
 	else if (method == "GET")
@@ -87,7 +85,7 @@ void	Client::set_headers(const str_t& path, int code) {
 	str_t	time;
 
 	std::time_t fetch_time = std::time(NULL);
-	time = std::asctime(std::localtime(&fetch_time)); //to do: change format
+	time = std::asctime(std::localtime(&fetch_time));
 	*time.rbegin() = CR;
 	data += "HTTP/1.1 " + _itoa(code) + " " + code_g[code] + CRLF;
 	data += "Server: " SERVER CRLF;
@@ -130,7 +128,7 @@ void	Client::process_response(int socket, int& state) {
 	}
 	else if (response->construct_path(state) == FAILURE)
 		raw_data += response->error_response(state);
-	else
+	else if (!(state & ERR_301))
 		_process_method(response, socket, state);
 	if (rline.size() == 3 && rline[2].substr(0, 5) == "HTTP/") {
 		if (_treat_cgi(response, state) == false)

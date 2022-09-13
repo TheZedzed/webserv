@@ -30,7 +30,6 @@ class	Response {
 		void	process_cgi(int socket, int& state, str_t& raw);
 		str_t	error_response(int& state);
 		str_t	process_delete(int& state);
-		str_t	process_redir(int& state);
 		str_t	process_post(int& state);
 		str_t	process_get(int& state);
 

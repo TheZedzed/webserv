@@ -123,8 +123,11 @@ bool	Response::construct_path(int& state) {
 		}
 		pos ? pos -= 1 : 0;
 	} while (pos);
-	if (_location->get_redir().first != -1)
+	if (_location->get_redir().first != -1) {
+		state = ERR_301;
+		_path = _location->get_redir().second;
 		return SUCCESS;
+	}
 	return _test_path(_path, state);
 }
 
@@ -192,16 +195,4 @@ str_t	Response::process_delete(int& state) {
 	}
 	state = (RESPONSE | ERR_200);
 	return str_t();
-}
-
-str_t	Response::process_redir(int& state) {
-	str_t	redirection;
-	str_t	res;
-
-	redirection = _location->get_redir().second;
-	_path = redirection;
-	res += extract_content(state);
-	if (!(state & ERROR))
-		state = (RESPONSE | ERR_301);
-	return res;
 }
