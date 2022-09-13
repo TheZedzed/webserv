@@ -76,7 +76,7 @@ bool	HttpContext::new_connection() {
 	listen_fd = peer->get_socket();
 	if (peer->get_type() == SERVERS) {
 		fd = accept(listen_fd, reinterpret_cast<sockaddr *>(&addr), &size);
-		if (fd == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
+		if (fd == -1)
 			throw std::runtime_error("Failure accept");
 		_add_client(fd);
 		return true;

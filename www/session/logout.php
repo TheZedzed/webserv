@@ -3,6 +3,7 @@
    unset($_SESSION["username"]);
    unset($_SESSION["password"]);
    unset($_SESSION['valid']);
+   setcookie('phpsessid','value',time()-1);
    session_destroy();
 
 

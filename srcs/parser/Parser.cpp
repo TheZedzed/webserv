@@ -52,11 +52,14 @@ Parser::Parser(const char* file) {
 Parser::~Parser() {
 	listenners_t::iterator	it1;
 	servers_t::iterator		it2;
+	servers_t::iterator		tmp;
 
 	for (it1 = _dumb_map.begin(); it1 != _dumb_map.end(); ++it1) {
 		it2 = it1->second.begin();
 		for (; it2 != it1->second.end(); ++it2) {
-			delete *it2;
+			if (!tmp.base() || (*tmp != *it2))
+				delete *it2;
+			tmp = it2;
 		}
 	}
 }

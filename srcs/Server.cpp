@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _max(1024 * 2048)
+Server::Server() : _routes(), _names(), _max(1024 * 2048)
 { std::cout << "\t[Create Server]" << std::endl; }
 
 Server::~Server() {

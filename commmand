@@ -1,4 +1,5 @@
 curl -X POST -H "Transfer-Encoding: chunked" -d 'hello' http://webserv:4242/uploads/post.py
 curl -X POST -d 'name=linuxize' -d 'email=linuxize@example.com' http://webserv:4242/uploads/post.py
+curl -X DELETE http://webserv3:4343/delete/file1
 
 
